@@ -1,0 +1,15 @@
+@* Họ và tên: Đỗ Huy Tùng - Mã sinh viên: 23103100296
+   Nội dung thực hiện: Thanh tiến trình trạng thái lịch khám (Chờ xác nhận -> Đã xác nhận -> Đã khám / Đã hủy). *@
+@model TrangThaiLichKham
+@{
+    bool huy = Model == TrangThaiLichKham.DaHuy;
+    int buoc = Model switch { TrangThaiLichKham.ChoXacNhan => 1, TrangThaiLichKham.DaXacNhan => 2, TrangThaiLichKham.DaKham => 3, _ => 1 };
+    string Mau(int b) => huy ? (b == 1 ? "#e11d48" : "#cbd5e1") : (b <= buoc ? "#1d5fe6" : "#cbd5e1");
+}
+<div class="d-flex align-items-center gap-2 flex-wrap small">
+    <span class="d-inline-flex align-items-center gap-1 fw-semibold" style="color:@Mau(1)"><i class="bi @(huy ? "bi-x-circle-fill" : "bi-check-circle-fill")"></i>@(huy ? "Đã hủy" : "Chờ xác nhận")</span>
+    <span style="flex:1;min-width:24px;border-top:2px dashed @Mau(2)"></span>
+    <span class="d-inline-flex align-items-center gap-1 fw-semibold" style="color:@Mau(2)"><i class="bi bi-check-circle-fill"></i>Đã xác nhận</span>
+    <span style="flex:1;min-width:24px;border-top:2px dashed @Mau(3)"></span>
+    <span class="d-inline-flex align-items-center gap-1 fw-semibold" style="color:@Mau(3)"><i class="bi bi-check-circle-fill"></i>Đã khám</span>
+</div>
