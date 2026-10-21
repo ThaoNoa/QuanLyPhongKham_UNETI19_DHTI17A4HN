@@ -1,0 +1,90 @@
+@* Họ và tên: Trần Anh Đức - Mã sinh viên: 23103100284
+   Nội dung thực hiện: Danh sách bệnh nhân - tìm theo tên/SĐT/BHYT, lọc giới tính/trạng thái, sắp xếp, phân trang. *@
+@model BenhNhanIndexViewModel
+@{
+    ViewData["Title"] = "Quản lý bệnh nhân";
+    ViewData["Subtitle"] = "Hồ sơ bệnh nhân của phòng khám";
+    Layout = "_AdminLayout";
+}
+<form method="get" class="filter-bar mb-3">
+    <div class="row g-2">
+        <div class="col-lg-4"><div class="input-icon"><i class="bi bi-search"></i><input name="tuKhoa" value="@Model.TuKhoa" class="form-control" placeholder="Tìm họ tên, số điện thoại, số BHYT..." /></div></div>
+        <div class="col-6 col-lg-2">
+            <select name="gioiTinh" class="form-select" data-auto-submit>
+                <option value="">Giới tính</option>
+                <option selected="@(Model.GioiTinh == "Nam")">Nam</option>
+                <option selected="@(Model.GioiTinh == "Nữ")">Nữ</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <select name="trangThai" class="form-select" data-auto-submit>
+                <option value="">Tất cả trạng thái</option>
+                <option value="true" selected="@(Model.TrangThai == true)">Đang theo dõi</option>
+                <option value="false" selected="@(Model.TrangThai == false)">Ngừng theo dõi</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <select name="sapXep" class="form-select" data-auto-submit>
+                <option value="">Họ tên A → Z</option>
+                <option value="ten_desc" selected="@(Model.SapXep == "ten_desc")">Họ tên Z → A</option>
+                <option value="ngaydk_desc" selected="@(Model.SapXep == "ngaydk_desc")">Đăng ký mới nhất</option>
+                <option value="ngaydk" selected="@(Model.SapXep == "ngaydk")">Đăng ký cũ nhất</option>
+                <option value="tuoi" selected="@(Model.SapXep == "tuoi")">Tuổi tăng dần</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-2 d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel"></i> Lọc</button>
+            <a asp-action="Index" class="btn btn-light-border"><i class="bi bi-x-lg"></i></a>
+        </div>
+    </div>
+</form>
+
+<div class="card-soft">
+    <div class="card-head">
+        <h6>Danh sách bệnh nhân <span class="text-muted fw-normal">(@Model.DanhSach.TongSoBanGhi)</span></h6>
+        <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Thêm bệnh nhân</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-modern">
+            <thead><tr><th>#</th><th>Bệnh nhân</th><th>Ngày sinh</th><th>Liên hệ</th><th>Số BHYT</th><th>Ngày đăng ký</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead>
+            <tbody>
+                @if (!Model.DanhSach.Any())
+                {
+                    <tr><td colspan="8"><div class="empty-state"><i class="bi bi-people"></i>Không tìm thấy bệnh nhân phù hợp.</div></td></tr>
+                }
+                @{ int stt = Model.DanhSach.ChiSoBatDau; }
+                @foreach (var b in Model.DanhSach)
+                {
+                    <tr>
+                        <td class="text-muted">@(++stt)</td>
+                        <td>
+                            <div class="person">
+                                <span class="avatar-initial" style="@(b.GioiTinh == "Nữ" ? "background:#fde8ef;color:#d6336c" : "")">@GiaoDienHelper.ChuCaiDau(b.HoTen)</span>
+                                <div><div class="fw-semibold">@b.HoTen</div><div class="sub">@b.GioiTinh · Mã BN@(b.MaBenhNhan.ToString("0000"))</div></div>
+                            </div>
+                        </td>
+                        <td>@b.NgaySinh.ToString("dd/MM/yyyy")</td>
+                        <td><div>@b.SoDienThoai</div><div class="sub">@b.Email</div></td>
+                        <td>@(b.SoBHYT ?? "—")</td>
+                        <td>@b.NgayDangKy.ToString("dd/MM/yyyy")</td>
+                        <td>@if (b.TrangThai) { <span class="status status-active">Theo dõi</span> } else { <span class="status status-inactive">Ngừng</span> }</td>
+                        <td>
+                            <div class="table-actions">
+                                <a asp-controller="LichKham" asp-action="DatLich" asp-route-maBenhNhan="@b.MaBenhNhan" class="btn btn-icon btn-light-border" title="Đặt lịch hộ"><i class="bi bi-calendar-plus"></i></a>
+                                <a asp-action="Details" asp-route-id="@b.MaBenhNhan" class="btn btn-icon btn-light-border" title="Xem"><i class="bi bi-eye"></i></a>
+                                <a asp-action="Edit" asp-route-id="@b.MaBenhNhan" class="btn btn-icon btn-light-border" title="Sửa"><i class="bi bi-pencil"></i></a>
+                                <button type="button" class="btn btn-icon btn-light-border text-danger" title="Xóa"
+                                        data-confirm-url="@Url.Action("Delete", new { id = b.MaBenhNhan })" data-confirm-title="Xóa bệnh nhân"
+                                        data-confirm-text="Xóa bệnh nhân @b.HoTen? Bệnh nhân đã có lịch khám sẽ không thể xóa." data-confirm-btn="Xóa"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span>Trang @Model.DanhSach.TrangHienTai / @Model.DanhSach.TongSoTrang · @Model.DanhSach.TongSoBanGhi bệnh nhân</span>
+        <partial name="_PhanTrang" model="@(new PhanTrangViewModel { TrangHienTai = Model.DanhSach.TrangHienTai, TongSoTrang = Model.DanhSach.TongSoTrang, ThamSo = Model.ThamSo() })" />
+    </div>
+</div>
