@@ -1,2 +1,18 @@
-﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+@* Họ và tên: Trần Phương Thảo (Nhóm trưởng) - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Thư viện kiểm tra dữ liệu phía trình duyệt (jQuery Validation) và thông báo mặc định tiếng Việt. *@
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+<script>
+    $.extend($.validator.messages, {
+        required: "Vui lòng nhập thông tin này.",
+        email: "Email không đúng định dạng.",
+        number: "Vui lòng nhập số hợp lệ.",
+        digits: "Vui lòng chỉ nhập chữ số.",
+        maxlength: $.validator.format("Tối đa {0} ký tự."),
+        minlength: $.validator.format("Tối thiểu {0} ký tự."),
+        range: $.validator.format("Giá trị phải từ {0} đến {1}."),
+        max: $.validator.format("Giá trị không được lớn hơn {0}."),
+        min: $.validator.format("Giá trị không được nhỏ hơn {0}."),
+        step: $.validator.format("Giá trị phải là bội số của {0}.")
+    });
+</script>

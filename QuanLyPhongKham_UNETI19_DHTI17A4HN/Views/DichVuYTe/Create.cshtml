@@ -1,0 +1,9 @@
+@* Họ và tên: Trần Phương Thảo - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Trang thêm dịch vụ y tế. *@
+@model DichVuYTe
+@{
+    ViewData["Title"] = "Thêm dịch vụ y tế";
+    Layout = "_AdminLayout";
+}
+<div class="card-soft" style="max-width:860px"><div class="card-body"><partial name="_Form" model="Model" /></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,28 @@
+@* Họ và tên: Trần Phương Thảo - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Chi tiết dịch vụ y tế - số lần sử dụng và doanh thu. *@
+@model DichVuYTe
+@{
+    ViewData["Title"] = Model.TenDichVu;
+    ViewData["Subtitle"] = "Chi tiết dịch vụ y tế";
+    Layout = "_AdminLayout";
+}
+<div class="row g-3" style="max-width:1000px">
+    <div class="col-md-6"><div class="stat-card"><div class="ico tone-blue"><i class="bi bi-bag-check"></i></div><div><div class="val">@ViewBag.SoLan</div><div class="lbl">Lần sử dụng</div></div></div></div>
+    <div class="col-md-6"><div class="stat-card"><div class="ico tone-teal"><i class="bi bi-cash-coin"></i></div><div><div class="val">@(((decimal)ViewBag.DoanhThu).DinhDangTien())</div><div class="lbl">Doanh thu từ dịch vụ</div></div></div></div>
+    <div class="col-12">
+        <div class="card-soft"><div class="card-body">
+            <dl class="info-list">
+                <dt>Mã dịch vụ</dt><dd>#@Model.MaDichVu</dd>
+                <dt>Tên dịch vụ</dt><dd>@Model.TenDichVu</dd>
+                <dt>Đơn vị tính</dt><dd>@Model.DonViTinh</dd>
+                <dt>Đơn giá</dt><dd>@Model.DonGia.DinhDangTien()</dd>
+                <dt>Mô tả</dt><dd>@(Model.MoTa ?? "—")</dd>
+                <dt>Trạng thái</dt><dd>@if (Model.TrangThai) { <span class="status status-active">Đang áp dụng</span> } else { <span class="status status-inactive">Ngừng</span> }</dd>
+            </dl>
+            <div class="form-actions">
+                <a asp-action="Index" class="btn btn-light-border">Quay lại</a>
+                <a asp-action="Edit" asp-route-id="@Model.MaDichVu" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>Sửa</a>
+            </div>
+        </div></div>
+    </div>
+</div>
