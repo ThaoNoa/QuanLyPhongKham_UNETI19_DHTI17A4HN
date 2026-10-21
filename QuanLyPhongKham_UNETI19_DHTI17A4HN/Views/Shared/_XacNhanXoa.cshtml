@@ -1,0 +1,22 @@
+@* Họ và tên: Trần Phương Thảo (Nhóm trưởng) - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Hộp thoại xác nhận dùng chung cho thao tác xóa / hủy (Bootstrap modal). *@
+<div class="modal fade" id="modalXacNhan" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" class="modal-content border-0" id="formXacNhan" style="border-radius:16px">
+            @Html.AntiForgeryToken()
+            <div class="modal-body p-4 text-center">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width:58px;height:58px;background:#fde8ec;color:#e11d48;font-size:1.6rem"><i class="bi bi-exclamation-triangle"></i></div>
+                <h5 class="fw-bold mb-2" id="xacNhanTieuDe">Xác nhận</h5>
+                <p class="text-muted mb-3" id="xacNhanNoiDung">Bạn có chắc chắn?</p>
+                <div id="xacNhanLyDo" class="text-start d-none mb-3">
+                    <label class="form-label" for="lyDoHuy">Lý do</label>
+                    <textarea class="form-control" name="lyDo" id="lyDoHuy" rows="2" maxlength="300" placeholder="Nhập lý do (không bắt buộc)"></textarea>
+                </div>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-light-border" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger" id="xacNhanNut">Đồng ý</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
