@@ -1,30 +1,48 @@
 @* Họ và tên: Đỗ Huy Tùng - Mã sinh viên: 23103100296
-   Nội dung thực hiện: Danh sách lịch cần xử lý - tìm theo bệnh nhân/bác sĩ, lọc chuyên khoa/trạng thái/ngày khám. *@
+   Nội dung thực hiện: Danh sách lịch cần xử lý - tab trạng thái, tìm theo bệnh nhân/bác sĩ, lọc chuyên khoa/ngày,
+   lọc nhanh (hôm nay, 7 ngày tới, cần xác nhận), sắp xếp theo ngày khám, phân trang giữ điều kiện. *@
 @model TiepNhanIndexViewModel
 @{
     ViewData["Title"] = "Tiếp nhận lịch khám";
     ViewData["Subtitle"] = "Xác nhận, hủy và cập nhật trạng thái lịch khám";
     Layout = "_AdminLayout";
+    int tong = Model.SoLuongTheoTrangThai.Values.Sum();
 }
+<div class="mb-3">
+    <div class="status-tabs">
+        <a asp-action="Index" asp-all-route-data="Model.ThamSo(true)" class="@(Model.TrangThai == null ? "active" : "")">Tất cả<span class="n">@tong</span></a>
+        @foreach (TrangThaiLichKham t in Enum.GetValues<TrangThaiLichKham>())
+        {
+            var ts = Model.ThamSo(true); ts["trangThai"] = t.ToString();
+            <a asp-action="Index" asp-all-route-data="ts" class="@(Model.TrangThai == t ? "active" : "")">@t.TenHienThi()<span class="n">@Model.SoLuongTheoTrangThai.GetValueOrDefault(t)</span></a>
+        }
+    </div>
+</div>
+
 <form method="get" class="filter-bar mb-3">
+    <input type="hidden" name="trangThai" value="@Model.TrangThai" />
     <div class="row g-2">
         <div class="col-lg-3"><div class="input-icon"><i class="bi bi-search"></i><input name="tuKhoa" value="@Model.TuKhoa" class="form-control" placeholder="Tên bệnh nhân, SĐT, tên bác sĩ..." /></div></div>
         <div class="col-6 col-lg-2"><select name="maChuyenKhoa" asp-items="Model.ChuyenKhoas" class="form-select"><option value="">Tất cả chuyên khoa</option></select></div>
         <div class="col-6 col-lg-2"><input type="date" name="tuNgay" value="@Model.TuNgay?.ToString("yyyy-MM-dd")" class="form-control" title="Từ ngày" /></div>
         <div class="col-6 col-lg-2"><input type="date" name="denNgay" value="@Model.DenNgay?.ToString("yyyy-MM-dd")" class="form-control" title="Đến ngày" /></div>
         <div class="col-6 col-lg-1">
-            <select name="trangThai" class="form-select" title="Trạng thái">
-                <option value="">Tất cả</option>
-                @foreach (TrangThaiLichKham t in Enum.GetValues<TrangThaiLichKham>())
-                {
-                    <option value="@t" selected="@(Model.TrangThai == t)">@t.TenHienThi()</option>
-                }
+            <select name="sapXep" class="form-select" title="Sắp xếp">
+                <option value="">Ngày ↓</option>
+                <option value="ngay" selected="@(Model.SapXep == "ngay")">Ngày ↑</option>
+                <option value="ngaydat_desc" selected="@(Model.SapXep == "ngaydat_desc")">Mới đặt</option>
             </select>
         </div>
         <div class="col-lg-2 d-flex gap-2">
             <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel"></i> Lọc</button>
             <a asp-action="Index" class="btn btn-light-border" title="Xóa bộ lọc"><i class="bi bi-x-lg"></i></a>
         </div>
+    </div>
+    <div class="d-flex gap-2 mt-2 small">
+        <span class="text-muted">Nhanh:</span>
+        <a asp-action="Index" asp-route-tuNgay="@DateTime.Today.ToString("yyyy-MM-dd")" asp-route-denNgay="@DateTime.Today.ToString("yyyy-MM-dd")" asp-route-sapXep="ngay">Hôm nay</a>
+        <a asp-action="Index" asp-route-tuNgay="@DateTime.Today.ToString("yyyy-MM-dd")" asp-route-denNgay="@DateTime.Today.AddDays(7).ToString("yyyy-MM-dd")" asp-route-sapXep="ngay">7 ngày tới</a>
+        <a asp-action="Index" asp-route-trangThai="ChoXacNhan" asp-route-sapXep="ngay">Cần xác nhận</a>
     </div>
 </form>
 
@@ -56,6 +74,7 @@
         </table>
     </div>
     <div class="table-footer">
-        <span>Hiển thị @Model.DanhSach.Count / @Model.DanhSach.TongSoBanGhi lịch (mới nhất trước)</span>
+        <span>@Model.DanhSach.TongSoBanGhi lịch · Trang @Model.DanhSach.TrangHienTai / @Model.DanhSach.TongSoTrang</span>
+        <partial name="_PhanTrang" model="@(new PhanTrangViewModel { TrangHienTai = Model.DanhSach.TrangHienTai, TongSoTrang = Model.DanhSach.TongSoTrang, ThamSo = Model.ThamSo() })" />
     </div>
 </div>
