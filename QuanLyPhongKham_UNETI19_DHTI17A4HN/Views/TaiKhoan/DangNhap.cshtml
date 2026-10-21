@@ -1,0 +1,61 @@
+@* Họ và tên: Trần Hoài Nam - Mã sinh viên: 23103100240
+   Nội dung thực hiện: Giao diện đăng nhập, hiển thị lỗi (sai mật khẩu, không tồn tại, bị khóa) và tài khoản dùng thử. *@
+@model DangNhapViewModel
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+<div class="auth-wrap">
+    <div class="auth-side">
+        <div style="max-width:460px;position:relative;z-index:1">
+            <span class="hero-badge" style="background:rgba(255,255,255,.14);color:#fff"><i class="bi bi-shield-check text-white"></i>Chăm sóc sức khỏe toàn diện</span>
+            <h2 class="mt-3">Đặt lịch khám nhanh chóng, theo dõi kết quả dễ dàng</h2>
+            <div class="feat"><i class="bi bi-calendar2-check"></i><div><strong class="text-white d-block">Đặt lịch 24/7</strong>Chọn bác sĩ và khung giờ phù hợp chỉ trong vài bước.</div></div>
+            <div class="feat"><i class="bi bi-bell"></i><div><strong class="text-white d-block">Theo dõi trạng thái</strong>Biết ngay khi phòng khám xác nhận lịch của bạn.</div></div>
+            <div class="feat"><i class="bi bi-clipboard2-pulse"></i><div><strong class="text-white d-block">Xem kết quả trực tuyến</strong>Chẩn đoán, đơn thuốc và lời dặn luôn sẵn sàng.</div></div>
+        </div>
+    </div>
+    <div class="auth-form">
+        <div class="auth-card">
+            <h3 class="mb-1">Đăng nhập</h3>
+            <p class="text-muted mb-4">Chào mừng bạn quay lại PhongKhamCare</p>
+
+            <form asp-action="DangNhap" method="post" novalidate>
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+                <div class="mb-3">
+                    <label asp-for="TenDangNhap" class="form-label"></label>
+                    <div class="input-icon"><i class="bi bi-person"></i><input asp-for="TenDangNhap" class="form-control" placeholder="Nhập tên đăng nhập" autofocus /></div>
+                    <span asp-validation-for="TenDangNhap"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="MatKhau" class="form-label"></label>
+                    <div class="input-icon"><i class="bi bi-lock"></i><input asp-for="MatKhau" class="form-control" placeholder="Nhập mật khẩu" /></div>
+                    <span asp-validation-for="MatKhau"></span>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 btn-lg mt-2">Đăng nhập</button>
+            </form>
+            <p class="text-center mt-3 small">Chưa có tài khoản? <a asp-action="DangKy" class="fw-semibold">Đăng ký ngay</a></p>
+
+            <div class="demo-accounts mt-4">
+                <div class="fw-semibold mb-1"><i class="bi bi-info-circle me-1"></i>Tài khoản dùng thử (bấm để điền)</div>
+                <button type="button" data-demo="admin|Admin@123">Admin</button>
+                <button type="button" data-demo="nhanvien1|NhanVien@123">Nhân viên</button>
+                <button type="button" data-demo="bs01|BacSi@123">Bác sĩ</button>
+                <button type="button" data-demo="bn01|BenhNhan@123">Bệnh nhân</button>
+                <button type="button" data-demo="nhanvien3|NhanVien@123">TK bị khóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelectorAll('[data-demo]').forEach(function (b) {
+            b.addEventListener('click', function () {
+                var p = b.getAttribute('data-demo').split('|');
+                document.getElementById('TenDangNhap').value = p[0];
+                document.getElementById('MatKhau').value = p[1];
+            });
+        });
+    </script>
+}

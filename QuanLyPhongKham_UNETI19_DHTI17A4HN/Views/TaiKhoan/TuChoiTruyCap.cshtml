@@ -1,0 +1,18 @@
+@* Họ và tên: Trần Hoài Nam - Mã sinh viên: 23103100240
+   Nội dung thực hiện: Trang thông báo khi người dùng truy cập chức năng không đủ quyền. *@
+@{
+    ViewData["Title"] = "Không có quyền truy cập";
+}
+<section class="section">
+    <div class="container" style="max-width:560px">
+        <div class="card-soft text-center p-5">
+            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width:76px;height:76px;background:#fde8ec;color:#e11d48;font-size:2rem"><i class="bi bi-shield-lock"></i></div>
+            <h3 class="fw-bold">403 - Không có quyền truy cập</h3>
+            <p class="text-muted">Tài khoản <strong>@Context.Session.LayHoTen()</strong> (@Context.Session.LayVaiTro()?.TenHienThi()) không được phép sử dụng chức năng này.</p>
+            <div class="d-flex gap-2 justify-content-center mt-3">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary"><i class="bi bi-house me-1"></i>Về trang chủ</a>
+                <button onclick="history.back()" class="btn btn-light-border">Quay lại</button>
+            </div>
+        </div>
+    </div>
+</section>
