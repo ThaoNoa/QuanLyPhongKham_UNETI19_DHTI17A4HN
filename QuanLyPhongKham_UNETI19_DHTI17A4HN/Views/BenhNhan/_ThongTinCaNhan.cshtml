@@ -1,0 +1,39 @@
+@* Họ và tên: Trần Anh Đức - Mã sinh viên: 23103100284
+   Nội dung thực hiện: Nhóm ô nhập thông tin cá nhân bệnh nhân (dùng chung cho form quản trị và hồ sơ cá nhân). *@
+@model BenhNhan
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="HoTen" class="form-label required"></label>
+        <input asp-for="HoTen" class="form-control" />
+        <span asp-validation-for="HoTen"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="NgaySinh" class="form-label required"></label>
+        <input asp-for="NgaySinh" type="date" class="form-control" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+        <span asp-validation-for="NgaySinh"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="GioiTinh" class="form-label required"></label>
+        <select asp-for="GioiTinh" class="form-select"><option>Nam</option><option>Nữ</option></select>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="SoDienThoai" class="form-label required"></label>
+        <input asp-for="SoDienThoai" class="form-control" placeholder="09xxxxxxxx" />
+        <span asp-validation-for="SoDienThoai"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email"></span>
+    </div>
+    <div class="col-md-8">
+        <label asp-for="DiaChi" class="form-label"></label>
+        <input asp-for="DiaChi" class="form-control" placeholder="Số nhà, đường, quận/huyện, tỉnh/thành" />
+        <span asp-validation-for="DiaChi"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="SoBHYT" class="form-label"></label>
+        <input asp-for="SoBHYT" class="form-control text-uppercase" placeholder="VD: DN4010123456789" />
+        <span asp-validation-for="SoBHYT"></span>
+    </div>
+</div>

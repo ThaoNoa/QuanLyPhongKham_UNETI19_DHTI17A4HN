@@ -1,0 +1,10 @@
+@* Họ và tên: Trần Anh Đức - Mã sinh viên: 23103100284
+   Nội dung thực hiện: Trang sửa bệnh nhân. *@
+@model BenhNhan
+@{
+    ViewData["Title"] = "Sửa thông tin bệnh nhân";
+    ViewData["Subtitle"] = Model.HoTen;
+    Layout = "_AdminLayout";
+}
+<div class="card-soft" style="max-width:980px"><div class="card-body"><partial name="_Form" model="Model" /></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

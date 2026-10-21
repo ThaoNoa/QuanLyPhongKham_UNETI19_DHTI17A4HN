@@ -1,0 +1,70 @@
+@* Họ và tên: Trần Anh Đức - Mã sinh viên: 23103100284
+   Nội dung thực hiện: Chi tiết bệnh nhân kèm lịch sử khám. *@
+@model BenhNhanChiTietViewModel
+@{
+    var b = Model.BenhNhan;
+    ViewData["Title"] = "Hồ sơ bệnh nhân";
+    ViewData["Subtitle"] = b.HoTen;
+    Layout = "_AdminLayout";
+}
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card-soft p-4">
+            <div class="text-center mb-3">
+                <span class="avatar-initial mx-auto mb-2" style="width:72px;height:72px;font-size:1.5rem">@GiaoDienHelper.ChuCaiDau(b.HoTen)</span>
+                <h5 class="fw-bold mb-0">@b.HoTen</h5>
+                <div class="text-muted small">Mã BN@(b.MaBenhNhan.ToString("0000")) · @b.GioiTinh · @(DateTime.Today.Year - b.NgaySinh.Year) tuổi</div>
+            </div>
+            <dl class="info-list" style="grid-template-columns:110px 1fr">
+                <dt>Ngày sinh</dt><dd>@b.NgaySinh.ToString("dd/MM/yyyy")</dd>
+                <dt>Điện thoại</dt><dd>@b.SoDienThoai</dd>
+                <dt>Email</dt><dd>@(b.Email ?? "—")</dd>
+                <dt>Địa chỉ</dt><dd>@(b.DiaChi ?? "—")</dd>
+                <dt>Số BHYT</dt><dd>@(b.SoBHYT ?? "—")</dd>
+                <dt>Ngày ĐK</dt><dd>@b.NgayDangKy.ToString("dd/MM/yyyy")</dd>
+                <dt>Tài khoản</dt><dd>@(b.TaiKhoan?.TenDangNhap ?? "Đăng ký tại quầy")</dd>
+                <dt>Trạng thái</dt><dd>@if (b.TrangThai) { <span class="status status-active">Theo dõi</span> } else { <span class="status status-inactive">Ngừng</span> }</dd>
+                <dt>Ghi chú</dt><dd>@(b.GhiChu ?? "—")</dd>
+            </dl>
+            <div class="form-actions">
+                <a asp-action="Index" class="btn btn-light-border">Quay lại</a>
+                <a asp-action="Edit" asp-route-id="@b.MaBenhNhan" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>Sửa</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card-soft">
+            <div class="card-head">
+                <h6>Lịch sử khám (@Model.LichKhams.Count)</h6>
+                <a asp-controller="LichKham" asp-action="DatLich" asp-route-maBenhNhan="@b.MaBenhNhan" class="btn btn-primary btn-sm"><i class="bi bi-calendar-plus me-1"></i>Đặt lịch hộ</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-modern">
+                    <thead><tr><th>Ngày khám</th><th>Bác sĩ</th><th>Lý do</th><th>Trạng thái</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var l in Model.LichKhams)
+                        {
+                            <tr>
+                                <td><div class="fw-semibold">@l.NgayKham.ToString("dd/MM/yyyy")</div><div class="sub">@l.GioBatDau.ToString(@"hh\:mm") - @l.GioKetThuc.ToString(@"hh\:mm")</div></td>
+                                <td><div>@l.BacSi?.HoTen</div><div class="sub">@l.BacSi?.ChuyenKhoa?.TenChuyenKhoa</div></td>
+                                <td class="text-muted" style="max-width:220px"><div class="text-truncate">@l.LyDoKham</div></td>
+                                <td><span class="@l.TrangThai.CssTrangThai()">@l.TrangThai.TenHienThi()</span></td>
+                                <td class="text-end">
+                                    <a asp-controller="TiepNhan" asp-action="ChiTiet" asp-route-id="@l.MaLichKham" class="btn btn-icon btn-light-border" title="Chi tiết"><i class="bi bi-eye"></i></a>
+                                    @if (l.KetQuaKham != null)
+                                    {
+                                        <a asp-controller="KetQuaKham" asp-action="Details" asp-route-id="@l.KetQuaKham.MaKetQua" class="btn btn-icon btn-light-border text-success" title="Kết quả"><i class="bi bi-clipboard2-check"></i></a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.LichKhams.Any())
+                        {
+                            <tr><td colspan="5"><div class="empty-state py-4"><i class="bi bi-calendar-x"></i>Bệnh nhân chưa có lịch khám.</div></td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
