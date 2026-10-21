@@ -1,6 +1,8 @@
 @* Họ và tên: Trần Phương Thảo (Nhóm trưởng) - Mã sinh viên: 23103100226
    Nội dung thực hiện: Layout trang quản trị (Admin / Nhân viên / Bác sĩ) - thanh menu ngang đồng bộ với trang công khai,
-   menu xổ xuống theo nhóm chức năng, thanh tiêu đề trang. *@
+   menu xổ xuống theo nhóm chức năng, thanh tiêu đề trang.
+   Họ và tên: Trần Hoài Nam - Mã sinh viên: 23103100240
+   Nội dung thực hiện: Ẩn/hiện menu theo vai trò lưu trong Session. *@
 @{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString();
     var action = ViewContext.RouteData.Values["action"]?.ToString();
@@ -8,6 +10,7 @@
     string Act(bool dk) => dk ? "active" : "";
     var vaiTro = Context.Session.LayVaiTro();
     var hoTen = Context.Session.LayHoTen();
+    bool laQuanTri = vaiTro == VaiTro.Admin || vaiTro == VaiTro.NhanVien;
     bool nhomLich = La("TiepNhan") || La("LichKham", "DatLich") || La("KetQuaKham");
     bool nhomQuanLy = La("BacSi") || La("BenhNhan") || La("DichVuYTe") || La("ChuyenKhoa") || La("TaiKhoan");
 }
@@ -39,6 +42,8 @@
                 </button>
                 <div class="collapse navbar-collapse" id="adminNav">
                     <ul class="navbar-nav mx-auto main-nav">
+                        @if (laQuanTri)
+                        {
                             <li class="nav-item"><a class="nav-link @Act(La("ThongKe", "Dashboard"))" asp-controller="ThongKe" asp-action="Dashboard">Dashboard</a></li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle @Act(nhomLich)" href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -56,12 +61,21 @@
                                     <li><a class="dropdown-item @Act(La("BacSi"))" asp-controller="BacSi" asp-action="Index"><i class="bi bi-person-badge"></i>Bác sĩ</a></li>
                                     <li><a class="dropdown-item @Act(La("BenhNhan"))" asp-controller="BenhNhan" asp-action="Index"><i class="bi bi-people"></i>Bệnh nhân</a></li>
                                     <li><a class="dropdown-item @Act(La("DichVuYTe"))" asp-controller="DichVuYTe" asp-action="Index"><i class="bi bi-bag-plus"></i>Dịch vụ y tế</a></li>
-                                    <li><hr class="dropdown-divider" /></li>
-                                    <li><a class="dropdown-item @Act(La("ChuyenKhoa"))" asp-controller="ChuyenKhoa" asp-action="Index"><i class="bi bi-hospital"></i>Chuyên khoa</a></li>
-                                    <li><a class="dropdown-item @Act(La("TaiKhoan") && action != "DoiMatKhau")" asp-controller="TaiKhoan" asp-action="Index"><i class="bi bi-person-gear"></i>Tài khoản</a></li>
+                                    @if (vaiTro == VaiTro.Admin)
+                                    {
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li><a class="dropdown-item @Act(La("ChuyenKhoa"))" asp-controller="ChuyenKhoa" asp-action="Index"><i class="bi bi-hospital"></i>Chuyên khoa</a></li>
+                                        <li><a class="dropdown-item @Act(La("TaiKhoan") && action != "DoiMatKhau")" asp-controller="TaiKhoan" asp-action="Index"><i class="bi bi-person-gear"></i>Tài khoản</a></li>
+                                    }
                                 </ul>
                             </li>
                             <li class="nav-item"><a class="nav-link @Act(La("ThongKe", "Index"))" asp-controller="ThongKe" asp-action="Index">Thống kê</a></li>
+                        }
+                        else if (vaiTro == VaiTro.BacSi)
+                        {
+                            <li class="nav-item"><a class="nav-link @Act(La("TiepNhan"))" asp-controller="TiepNhan" asp-action="LichCuaBacSi">Lịch làm việc</a></li>
+                            <li class="nav-item"><a class="nav-link @Act(La("KetQuaKham"))" asp-controller="KetQuaKham" asp-action="Index">Kết quả khám</a></li>
+                        }
                         <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
                     </ul>
                     <div class="d-flex align-items-center gap-2 header-actions py-2 py-lg-0">
