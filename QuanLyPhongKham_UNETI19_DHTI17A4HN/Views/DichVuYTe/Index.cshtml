@@ -1,0 +1,72 @@
+@* Họ và tên: Trần Phương Thảo - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Danh sách dịch vụ y tế - tìm kiếm, lọc trạng thái, sắp xếp theo tên/đơn giá, phân trang. *@
+@model DichVuYTeIndexViewModel
+@{
+    ViewData["Title"] = "Dịch vụ y tế";
+    ViewData["Subtitle"] = "Danh mục dịch vụ và đơn giá";
+    Layout = "_AdminLayout";
+}
+<form method="get" class="filter-bar mb-3">
+    <div class="row g-2">
+        <div class="col-lg-5"><div class="input-icon"><i class="bi bi-search"></i><input name="tuKhoa" value="@Model.TuKhoa" class="form-control" placeholder="Tìm tên dịch vụ..." /></div></div>
+        <div class="col-6 col-lg-2">
+            <select name="trangThai" class="form-select" data-auto-submit>
+                <option value="">Tất cả trạng thái</option>
+                <option value="true" selected="@(Model.TrangThai == true)">Đang áp dụng</option>
+                <option value="false" selected="@(Model.TrangThai == false)">Ngừng áp dụng</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-3">
+            <select name="sapXep" class="form-select" data-auto-submit>
+                <option value="">Tên A → Z</option>
+                <option value="ten_desc" selected="@(Model.SapXep == "ten_desc")">Tên Z → A</option>
+                <option value="gia" selected="@(Model.SapXep == "gia")">Giá thấp → cao</option>
+                <option value="gia_desc" selected="@(Model.SapXep == "gia_desc")">Giá cao → thấp</option>
+            </select>
+        </div>
+        <div class="col-lg-2 d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel"></i> Lọc</button>
+            <a asp-action="Index" class="btn btn-light-border"><i class="bi bi-x-lg"></i></a>
+        </div>
+    </div>
+</form>
+<div class="card-soft">
+    <div class="card-head">
+        <h6>Danh sách dịch vụ <span class="text-muted fw-normal">(@Model.DanhSach.TongSoBanGhi)</span></h6>
+        <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Thêm dịch vụ</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-modern">
+            <thead><tr><th>Dịch vụ</th><th>Đơn vị</th><th class="text-end">Đơn giá</th><th class="text-center">Đã sử dụng</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead>
+            <tbody>
+                @if (!Model.DanhSach.Any())
+                {
+                    <tr><td colspan="6"><div class="empty-state"><i class="bi bi-bag-x"></i>Không có dịch vụ phù hợp.</div></td></tr>
+                }
+                @foreach (var d in Model.DanhSach)
+                {
+                    <tr>
+                        <td><div class="fw-semibold">@d.TenDichVu</div><div class="sub">@d.MoTa</div></td>
+                        <td>@d.DonViTinh</td>
+                        <td class="text-end fw-semibold">@d.DonGia.DinhDangTien()</td>
+                        <td class="text-center">@Model.SoLanSuDung.GetValueOrDefault(d.MaDichVu)</td>
+                        <td>@if (d.TrangThai) { <span class="status status-active">Đang áp dụng</span> } else { <span class="status status-inactive">Ngừng</span> }</td>
+                        <td>
+                            <div class="table-actions">
+                                <a asp-action="Details" asp-route-id="@d.MaDichVu" class="btn btn-icon btn-light-border" title="Xem"><i class="bi bi-eye"></i></a>
+                                <a asp-action="Edit" asp-route-id="@d.MaDichVu" class="btn btn-icon btn-light-border" title="Sửa"><i class="bi bi-pencil"></i></a>
+                                <button type="button" class="btn btn-icon btn-light-border text-danger" title="Xóa"
+                                        data-confirm-url="@Url.Action("Delete", new { id = d.MaDichVu })" data-confirm-title="Xóa dịch vụ"
+                                        data-confirm-text="Xóa dịch vụ &quot;@d.TenDichVu&quot;? Dịch vụ đã sử dụng sẽ không thể xóa." data-confirm-btn="Xóa"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span>Trang @Model.DanhSach.TrangHienTai / @Model.DanhSach.TongSoTrang</span>
+        <partial name="_PhanTrang" model="@(new PhanTrangViewModel { TrangHienTai = Model.DanhSach.TrangHienTai, TongSoTrang = Model.DanhSach.TongSoTrang, ThamSo = Model.ThamSo() })" />
+    </div>
+</div>
