@@ -1,0 +1,16 @@
+@* Họ và tên: Trần Phương Thảo (Nhóm trưởng) - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Hiển thị thông báo thành công/lỗi (TempData) dạng toast, tự ẩn sau 5 giây. *@
+@{
+    var thanhCong = TempData["ThanhCong"] as string;
+    var loi = TempData["Loi"] as string;
+}
+<div class="toast-stack" id="toastStack">
+    @if (!string.IsNullOrEmpty(thanhCong))
+    {
+        <div class="pk-toast success" role="status"><i class="bi bi-check-circle-fill"></i><div class="flex-grow-1">@thanhCong</div><button type="button" class="btn-close btn-sm" data-close-toast></button></div>
+    }
+    @if (!string.IsNullOrEmpty(loi))
+    {
+        <div class="pk-toast error" role="alert"><i class="bi bi-exclamation-octagon-fill"></i><div class="flex-grow-1">@loi</div><button type="button" class="btn-close btn-sm" data-close-toast></button></div>
+    }
+</div>

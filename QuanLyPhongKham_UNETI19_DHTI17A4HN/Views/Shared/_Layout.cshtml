@@ -1,47 +1,95 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@* Họ và tên: Trần Phương Thảo (Nhóm trưởng) - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Layout trang công khai (bệnh nhân) - header điều hướng, menu tài khoản theo vai trò, footer. *@
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    bool La(string c, string? a = null) => controller == c && (a == null || action == a);
+}
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - QuanLyPhongKham_UNETI19_DHTI17A4HN</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - PhongKhamCare</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/lib/be-vietnam-pro/be-vietnam-pro.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/QuanLyPhongKham_UNETI19_DHTI17A4HN.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">QuanLyPhongKham_UNETI19_DHTI17A4HN</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="brand" asp-controller="Home" asp-action="Index">
+                    <partial name="_Logo" />
+                    <div>
+                        <div class="brand-name">PhongKhamCare</div>
+                        <div class="brand-sub">Vì sức khỏe của bạn</div>
+                    </div>
+                </a>
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="Mở menu">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav mx-auto main-nav">
+                        <li class="nav-item"><a class="nav-link @(La("Home","Index") ? "active" : "")" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="nav-item"><a class="nav-link @(La("BacSi") ? "active" : "")" asp-controller="BacSi" asp-action="DanhSach">Bác sĩ</a></li>
+                        <li class="nav-item"><a class="nav-link @(La("ChuyenKhoa") ? "active" : "")" asp-controller="ChuyenKhoa" asp-action="DanhSach">Chuyên khoa</a></li>
+                        <li class="nav-item"><a class="nav-link @(La("LichKham","DatLich") ? "active" : "")" asp-controller="LichKham" asp-action="DatLich">Đặt lịch khám</a></li>
+                        <li class="nav-item"><a class="nav-link @(La("LichKham","LichCuaToi") || La("LichKham","ChiTiet") || La("KetQuaKham") ? "active" : "")" asp-controller="LichKham" asp-action="LichCuaToi">Tra cứu lịch khám</a></li>
                     </ul>
+                    <div class="d-flex align-items-center gap-2 header-actions py-2 py-lg-0">
+                        <a class="btn btn-icon btn-light-border border-0" asp-controller="BacSi" asp-action="DanhSach" title="Tìm bác sĩ"><i class="bi bi-search"></i></a>
+                        <a class="btn btn-outline-primary" asp-controller="TaiKhoan" asp-action="DangNhap">Đăng nhập</a>
+                        <a class="btn btn-primary" asp-controller="TaiKhoan" asp-action="DangKy">Đăng ký</a>
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
+    <partial name="_ThongBao" />
+
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
         <div class="container">
-            &copy; 2026 - QuanLyPhongKham_UNETI19_DHTI17A4HN - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="row g-4 align-items-start">
+                <div class="col-lg-3">
+                    <a class="brand" asp-controller="Home" asp-action="Index">
+                        <partial name="_Logo" />
+                        <div><div class="brand-name">PhongKhamCare</div><div class="brand-sub">Vì sức khỏe của bạn</div></div>
+                    </a>
+                </div>
+                <div class="col-lg-5">
+                    <div class="footer-links pt-lg-2">
+                        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+                        <a asp-controller="BacSi" asp-action="DanhSach">Bác sĩ</a>
+                        <a asp-controller="ChuyenKhoa" asp-action="DanhSach">Chuyên khoa</a>
+                        <a asp-controller="LichKham" asp-action="DatLich">Đặt lịch khám</a>
+                        <a asp-controller="LichKham" asp-action="LichCuaToi">Tra cứu lịch khám</a>
+                    </div>
+                </div>
+                <div class="col-lg-3 footer-contact">
+                    <div><i class="bi bi-telephone"></i>1900 1234 &nbsp;&nbsp; <i class="bi bi-envelope"></i>info@phongkhamcare.vn</div>
+                    <div><i class="bi bi-geo-alt"></i>123 Nguyễn Văn Cừ, Quận Long Biên, Hà Nội</div>
+                </div>
+                <div class="col-lg-1 text-lg-end social">
+                    <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-bottom d-flex flex-wrap justify-content-between gap-2">
+                <span>© @DateTime.Now.Year PhongKhamCare - Nhóm 19 - DHTI17A4HN. Bài tập lớn Thực hành lập trình .NET.</span>
+                <span>Giờ làm việc: Thứ 2 - Thứ 7, 07:00 - 17:30</span>
+            </div>
         </div>
     </footer>
+
+    <partial name="_XacNhanXoa" />
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

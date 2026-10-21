@@ -1,0 +1,125 @@
+@* Họ và tên: Trần Phương Thảo (Nhóm trưởng) - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Layout trang quản trị (Admin / Nhân viên / Bác sĩ) - thanh menu ngang đồng bộ với trang công khai,
+   menu xổ xuống theo nhóm chức năng, thanh tiêu đề trang. *@
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    bool La(string c, string? a = null) => controller == c && (a == null || action == a);
+    string Act(bool dk) => dk ? "active" : "";
+    var vaiTro = Context.Session.LayVaiTro();
+    var hoTen = Context.Session.LayHoTen();
+    bool nhomLich = La("TiepNhan") || La("LichKham", "DatLich") || La("KetQuaKham");
+    bool nhomQuanLy = La("BacSi") || La("BenhNhan") || La("DichVuYTe") || La("ChuyenKhoa") || La("TaiKhoan");
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Quản trị PhongKhamCare</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/lib/be-vietnam-pro/be-vietnam-pro.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="admin-body">
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="brand" asp-controller="Home" asp-action="Index">
+                    <partial name="_Logo" />
+                    <div>
+                        <div class="brand-name">PhongKhamCare</div>
+                        <div class="brand-sub">Hệ thống quản trị</div>
+                    </div>
+                </a>
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav" aria-label="Mở menu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="adminNav">
+                    <ul class="navbar-nav mx-auto main-nav">
+                            <li class="nav-item"><a class="nav-link @Act(La("ThongKe", "Dashboard"))" asp-controller="ThongKe" asp-action="Dashboard">Dashboard</a></li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle @Act(nhomLich)" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Lịch khám
+                                </a>
+                                <ul class="dropdown-menu nav-menu">
+                                    <li><a class="dropdown-item @Act(La("TiepNhan"))" asp-controller="TiepNhan" asp-action="Index"><i class="bi bi-calendar2-check"></i>Tiếp nhận lịch khám</a></li>
+                                    <li><a class="dropdown-item @Act(La("LichKham", "DatLich"))" asp-controller="LichKham" asp-action="DatLich"><i class="bi bi-calendar-plus"></i>Đặt lịch hộ bệnh nhân</a></li>
+                                    <li><a class="dropdown-item @Act(La("KetQuaKham"))" asp-controller="KetQuaKham" asp-action="Index"><i class="bi bi-clipboard2-pulse"></i>Kết quả khám</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle @Act(nhomQuanLy)" href="#" data-bs-toggle="dropdown" aria-expanded="false">Quản lý</a>
+                                <ul class="dropdown-menu nav-menu">
+                                    <li><a class="dropdown-item @Act(La("BacSi"))" asp-controller="BacSi" asp-action="Index"><i class="bi bi-person-badge"></i>Bác sĩ</a></li>
+                                    <li><a class="dropdown-item @Act(La("BenhNhan"))" asp-controller="BenhNhan" asp-action="Index"><i class="bi bi-people"></i>Bệnh nhân</a></li>
+                                    <li><a class="dropdown-item @Act(La("DichVuYTe"))" asp-controller="DichVuYTe" asp-action="Index"><i class="bi bi-bag-plus"></i>Dịch vụ y tế</a></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li><a class="dropdown-item @Act(La("ChuyenKhoa"))" asp-controller="ChuyenKhoa" asp-action="Index"><i class="bi bi-hospital"></i>Chuyên khoa</a></li>
+                                    <li><a class="dropdown-item @Act(La("TaiKhoan") && action != "DoiMatKhau")" asp-controller="TaiKhoan" asp-action="Index"><i class="bi bi-person-gear"></i>Tài khoản</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item"><a class="nav-link @Act(La("ThongKe", "Index"))" asp-controller="ThongKe" asp-action="Index">Thống kê</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                    </ul>
+                    <div class="d-flex align-items-center gap-2 header-actions py-2 py-lg-0">
+                        <div class="dropdown">
+                            <a href="#" class="user-chip dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="avatar-initial">@GiaoDienHelper.ChuCaiDau(hoTen)</span>
+                                <span class="d-none d-xl-inline fw-semibold small">@hoTen</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end nav-menu" style="min-width:230px">
+                                <li class="px-3 py-2 small text-muted">Xin chào, <strong class="text-dark">@hoTen</strong><br />@vaiTro?.TenHienThi()</li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" asp-controller="TaiKhoan" asp-action="DoiMatKhau"><i class="bi bi-key"></i>Đổi mật khẩu</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <form asp-controller="TaiKhoan" asp-action="DangXuat" method="post">
+                                        <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i>Đăng xuất</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <partial name="_ThongBao" />
+
+    <section class="admin-pagebar">
+        <div class="container d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <div class="min-w-0">
+                <h1 class="page-title">@ViewData["Title"]</h1>
+                @if (ViewData["Subtitle"] != null)
+                {
+                    <div class="small text-muted">@ViewData["Subtitle"]</div>
+                }
+            </div>
+            <span class="small text-muted"><i class="bi bi-calendar3 me-1"></i>@GiaoDienHelper.TenThu(DateTime.Today), @DateTime.Today.ToString("dd/MM/yyyy")</span>
+        </div>
+    </section>
+
+    <main class="admin-content">
+        <div class="container">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="admin-footer">
+        <div class="container d-flex justify-content-between flex-wrap gap-2">
+            <span>© @DateTime.Now.Year PhongKhamCare · Nhóm 19 - DHTI17A4HN</span>
+            <span>Giờ làm việc: Thứ 2 - Thứ 7, 07:00 - 17:30</span>
+        </div>
+    </footer>
+
+    <partial name="_XacNhanXoa" />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
