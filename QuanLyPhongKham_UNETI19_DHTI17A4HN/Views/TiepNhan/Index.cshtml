@@ -1,0 +1,61 @@
+@* Họ và tên: Đỗ Huy Tùng - Mã sinh viên: 23103100296
+   Nội dung thực hiện: Danh sách lịch cần xử lý - tìm theo bệnh nhân/bác sĩ, lọc chuyên khoa/trạng thái/ngày khám. *@
+@model TiepNhanIndexViewModel
+@{
+    ViewData["Title"] = "Tiếp nhận lịch khám";
+    ViewData["Subtitle"] = "Xác nhận, hủy và cập nhật trạng thái lịch khám";
+    Layout = "_AdminLayout";
+}
+<form method="get" class="filter-bar mb-3">
+    <div class="row g-2">
+        <div class="col-lg-3"><div class="input-icon"><i class="bi bi-search"></i><input name="tuKhoa" value="@Model.TuKhoa" class="form-control" placeholder="Tên bệnh nhân, SĐT, tên bác sĩ..." /></div></div>
+        <div class="col-6 col-lg-2"><select name="maChuyenKhoa" asp-items="Model.ChuyenKhoas" class="form-select"><option value="">Tất cả chuyên khoa</option></select></div>
+        <div class="col-6 col-lg-2"><input type="date" name="tuNgay" value="@Model.TuNgay?.ToString("yyyy-MM-dd")" class="form-control" title="Từ ngày" /></div>
+        <div class="col-6 col-lg-2"><input type="date" name="denNgay" value="@Model.DenNgay?.ToString("yyyy-MM-dd")" class="form-control" title="Đến ngày" /></div>
+        <div class="col-6 col-lg-1">
+            <select name="trangThai" class="form-select" title="Trạng thái">
+                <option value="">Tất cả</option>
+                @foreach (TrangThaiLichKham t in Enum.GetValues<TrangThaiLichKham>())
+                {
+                    <option value="@t" selected="@(Model.TrangThai == t)">@t.TenHienThi()</option>
+                }
+            </select>
+        </div>
+        <div class="col-lg-2 d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel"></i> Lọc</button>
+            <a asp-action="Index" class="btn btn-light-border" title="Xóa bộ lọc"><i class="bi bi-x-lg"></i></a>
+        </div>
+    </div>
+</form>
+
+<div class="card-soft">
+    <div class="table-responsive">
+        <table class="table table-modern">
+            <thead><tr><th>Mã lịch</th><th>Bệnh nhân</th><th>Bác sĩ / Chuyên khoa</th><th>Ngày khám</th><th>Trạng thái</th><th class="text-end">Chi tiết</th></tr></thead>
+            <tbody>
+                @if (!Model.DanhSach.Any())
+                {
+                    <tr><td colspan="6"><div class="empty-state"><i class="bi bi-calendar-x"></i>Không có lịch khám phù hợp.</div></td></tr>
+                }
+                @foreach (var l in Model.DanhSach)
+                {
+                    <tr>
+                        <td><a asp-action="ChiTiet" asp-route-id="@l.MaLichKham" class="fw-semibold">#LK@(l.MaLichKham.ToString("00000"))</a><div class="sub">Đặt @l.NgayTao.ToString("dd/MM HH:mm")</div></td>
+                        <td><div class="fw-semibold">@l.BenhNhan?.HoTen</div><div class="sub">@l.BenhNhan?.SoDienThoai</div></td>
+                        <td><div>@l.BacSi?.HoTen</div><div class="sub">@l.BacSi?.ChuyenKhoa?.TenChuyenKhoa</div></td>
+                        <td><div class="fw-semibold">@l.NgayKham.ToString("dd/MM/yyyy")</div><div class="sub">@GiaoDienHelper.TenThu(l.NgayKham) · @l.GioBatDau.ToString(@"hh\:mm") - @l.GioKetThuc.ToString(@"hh\:mm")</div></td>
+                        <td><span class="@l.TrangThai.CssTrangThai()">@l.TrangThai.TenHienThi()</span></td>
+                        <td>
+                            <div class="table-actions">
+                                <a asp-action="ChiTiet" asp-route-id="@l.MaLichKham" class="btn btn-icon btn-light-border" title="Chi tiết"><i class="bi bi-eye"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span>Hiển thị @Model.DanhSach.Count / @Model.DanhSach.TongSoBanGhi lịch (mới nhất trước)</span>
+    </div>
+</div>
