@@ -1,0 +1,83 @@
+@* Họ và tên: Lê Quang Trung - Mã sinh viên: 23103100270
+   Nội dung thực hiện: Danh sách bác sĩ (quản trị) - tìm kiếm họ tên/chuyên môn, lọc chuyên khoa/trạng thái,
+   sắp xếp tên/học vị, phân trang giữ điều kiện lọc. *@
+@model BacSiIndexViewModel
+@{
+    ViewData["Title"] = "Quản lý bác sĩ";
+    ViewData["Subtitle"] = "Thông tin, chuyên khoa và trạng thái nhận lịch của bác sĩ";
+    Layout = "_AdminLayout";
+}
+<form method="get" class="filter-bar mb-3">
+    <div class="row g-2">
+        <div class="col-lg-4"><div class="input-icon"><i class="bi bi-search"></i><input name="tuKhoa" value="@Model.TuKhoa" class="form-control" placeholder="Tìm theo họ tên hoặc chuyên môn..." /></div></div>
+        <div class="col-6 col-lg-2">
+            <select name="maChuyenKhoa" asp-items="Model.ChuyenKhoas" class="form-select" data-auto-submit><option value="">Tất cả chuyên khoa</option></select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <select name="trangThai" class="form-select" data-auto-submit>
+                <option value="">Tất cả trạng thái</option>
+                <option value="true" selected="@(Model.TrangThai == true)">Đang hoạt động</option>
+                <option value="false" selected="@(Model.TrangThai == false)">Tạm ngừng</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <select name="sapXep" class="form-select" data-auto-submit>
+                <option value="">Tên A → Z</option>
+                <option value="ten_desc" selected="@(Model.SapXep == "ten_desc")">Tên Z → A</option>
+                <option value="hocvi_desc" selected="@(Model.SapXep == "hocvi_desc")">Học vị cao → thấp</option>
+                <option value="hocvi" selected="@(Model.SapXep == "hocvi")">Học vị thấp → cao</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-2 d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel"></i> Lọc</button>
+            <a asp-action="Index" class="btn btn-light-border" title="Xóa bộ lọc"><i class="bi bi-x-lg"></i></a>
+        </div>
+    </div>
+</form>
+
+<div class="card-soft">
+    <div class="card-head">
+        <h6>Danh sách bác sĩ <span class="text-muted fw-normal">(@Model.DanhSach.TongSoBanGhi)</span></h6>
+        <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Thêm bác sĩ</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-modern">
+            <thead><tr><th>Bác sĩ</th><th>Chuyên khoa</th><th>Học vị</th><th>Liên hệ</th><th class="text-center">Lượt khám</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead>
+            <tbody>
+                @if (!Model.DanhSach.Any())
+                {
+                    <tr><td colspan="7"><div class="empty-state"><i class="bi bi-person-x"></i>Không tìm thấy bác sĩ phù hợp.</div></td></tr>
+                }
+                @foreach (var b in Model.DanhSach)
+                {
+                    <tr>
+                        <td>
+                            <div class="person">
+                                <partial name="_AnhBacSi" model="b" />
+                                <div class="min-w-0"><div class="fw-semibold">@b.HoTen</div><div class="sub text-truncate" style="max-width:240px">@b.ChuyenMon</div></div>
+                            </div>
+                        </td>
+                        <td>@b.ChuyenKhoa?.TenChuyenKhoa</td>
+                        <td>@b.HocVi.TenHienThi()</td>
+                        <td><div>@b.SoDienThoai</div><div class="sub">@b.Email</div></td>
+                        <td class="text-center fw-semibold">@(Model.SoLuotKham.GetValueOrDefault(b.MaBacSi))</td>
+                        <td>@if (b.TrangThai) { <span class="status status-active">Hoạt động</span> } else { <span class="status status-inactive">Tạm ngừng</span> }</td>
+                        <td>
+                            <div class="table-actions">
+                                <a asp-action="Details" asp-route-id="@b.MaBacSi" class="btn btn-icon btn-light-border" title="Xem"><i class="bi bi-eye"></i></a>
+                                <a asp-action="Edit" asp-route-id="@b.MaBacSi" class="btn btn-icon btn-light-border" title="Sửa"><i class="bi bi-pencil"></i></a>
+                                <button type="button" class="btn btn-icon btn-light-border text-danger" title="Xóa"
+                                        data-confirm-url="@Url.Action("Delete", new { id = b.MaBacSi })" data-confirm-title="Xóa bác sĩ"
+                                        data-confirm-text="Xóa bác sĩ @b.HoTen? Bác sĩ đã có lịch khám sẽ không thể xóa." data-confirm-btn="Xóa"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span>Hiển thị @Model.DanhSach.Count / @Model.DanhSach.TongSoBanGhi bác sĩ · Trang @Model.DanhSach.TrangHienTai / @Model.DanhSach.TongSoTrang</span>
+        <partial name="_PhanTrang" model="@(new PhanTrangViewModel { TrangHienTai = Model.DanhSach.TrangHienTai, TongSoTrang = Model.DanhSach.TongSoTrang, ThamSo = Model.ThamSo() })" />
+    </div>
+</div>

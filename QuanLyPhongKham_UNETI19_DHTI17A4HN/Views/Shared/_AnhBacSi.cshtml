@@ -1,0 +1,14 @@
+@* Họ và tên: Lê Quang Trung - Mã sinh viên: 23103100270
+   Nội dung thực hiện: Ảnh đại diện bác sĩ - dùng ảnh upload, nếu chưa có thì hiển thị chữ cái đầu. *@
+@model BacSi
+@{
+    var css = ViewData["css"] as string ?? "";
+}
+@if (!string.IsNullOrEmpty(Model.HinhAnh))
+{
+    <img src="@Model.HinhAnh" alt="@Model.HoTen" class="doctor-photo @css" loading="lazy" />
+}
+else
+{
+    <div class="doctor-photo initials @css">@GiaoDienHelper.ChuCaiDau(Model.HoTen)</div>
+}
