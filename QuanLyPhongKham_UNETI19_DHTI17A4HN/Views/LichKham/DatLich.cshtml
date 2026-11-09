@@ -1,0 +1,210 @@
+@* Họ và tên: Trần Anh Đức - Mã sinh viên: 23103100284
+   Nội dung thực hiện: Giao diện đặt lịch khám 3 bước - chọn chuyên khoa (select từ CSDL), chọn bác sĩ (tải theo khoa),
+   chọn ngày (type="date") và giờ (type="time", có lưới khung giờ trống), nhập lý do khám. *@
+@model DatLichViewModel
+@{
+    ViewData["Title"] = Model.LaNhanVien ? "Đặt lịch hộ bệnh nhân" : "Đặt lịch khám";
+    ViewData["Subtitle"] = "Lịch mới sẽ ở trạng thái Chờ xác nhận";
+    Layout = Model.LaNhanVien ? "_AdminLayout" : "_Layout";
+    string homNay = DateTime.Today.ToString("yyyy-MM-dd");
+    string toiDa = DateTime.Today.AddDays(60).ToString("yyyy-MM-dd");
+}
+@if (!Model.LaNhanVien)
+{
+    <section class="page-hero">
+        <div class="container">
+            <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li><li class="breadcrumb-item active">Đặt lịch khám</li></ol></nav>
+            <h1>Đặt lịch khám</h1>
+            <p class="text-muted mb-0">Chỉ với 3 bước đơn giản - Nhanh chóng, tiện lợi, an toàn.</p>
+        </div>
+    </section>
+}
+<div class="@(Model.LaNhanVien ? "" : "container section")">
+    <form asp-action="DatLich" method="post" novalidate id="formDatLich">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card-soft">
+                    <div class="card-body">
+                        <div class="timeline-steps">
+                            <div class="ts on" id="ts1"><span class="n">1</span>Chọn chuyên khoa</div><div class="sep"></div>
+                            <div class="ts" id="ts2"><span class="n">2</span>Chọn bác sĩ &amp; thời gian</div><div class="sep"></div>
+                            <div class="ts" id="ts3"><span class="n">3</span>Xác nhận</div>
+                        </div>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                        @if (Model.LaNhanVien)
+                        {
+                            <div class="mb-3">
+                                <label asp-for="MaBenhNhan" class="form-label required"></label>
+                                <select asp-for="MaBenhNhan" asp-items="Model.BenhNhans" class="form-select"><option value="">-- Chọn bệnh nhân --</option></select>
+                                <div class="form-text">Chưa có hồ sơ? <a asp-controller="BenhNhan" asp-action="Create">Thêm bệnh nhân mới</a></div>
+                                <span asp-validation-for="MaBenhNhan"></span>
+                            </div>
+                        }
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="MaChuyenKhoa" class="form-label"></label>
+                                <div class="input-icon"><i class="bi bi-hospital"></i>
+                                    <select asp-for="MaChuyenKhoa" asp-items="Model.ChuyenKhoas" class="form-select"><option value="">Tất cả chuyên khoa</option></select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="MaBacSi" class="form-label required"></label>
+                                <div class="input-icon"><i class="bi bi-person-badge"></i>
+                                    <select asp-for="MaBacSi" asp-items="Model.BacSis" class="form-select"><option value="">-- Chọn bác sĩ --</option></select>
+                                </div>
+                                <span asp-validation-for="MaBacSi"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="NgayKham" class="form-label required"></label>
+                                <input asp-for="NgayKham" type="date" class="form-control" min="@homNay" max="@toiDa" />
+                                <span asp-validation-for="NgayKham"></span>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <label asp-for="GioBatDau" class="form-label required"></label>
+                                <input asp-for="GioBatDau" asp-format="{0:hh\:mm}" type="time" class="form-control" min="07:00" max="17:00" />
+                                <span asp-validation-for="GioBatDau"></span>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <label asp-for="GioKetThuc" class="form-label required"></label>
+                                <input asp-for="GioKetThuc" asp-format="{0:hh\:mm}" type="time" class="form-control" min="07:30" max="17:30" />
+                                <span asp-validation-for="GioKetThuc"></span>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label d-flex justify-content-between">
+                                    <span>Chọn nhanh khung giờ (30 phút)</span>
+                                    <span class="small text-muted fw-normal"><span class="slot busy d-inline-block px-2 py-0 me-1">08:00</span>đã có lịch</span>
+                                </label>
+                                <div id="khungGio" class="slot-grid"></div>
+                                <div id="khungGioThongBao" class="small text-muted mt-2">Chọn bác sĩ và ngày khám để xem các khung giờ còn trống.</div>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="LyDoKham" class="form-label required"></label>
+                                <textarea asp-for="LyDoKham" rows="3" class="form-control" placeholder="Mô tả triệu chứng hoặc lý do khám..."></textarea>
+                                <span asp-validation-for="LyDoKham"></span>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="GhiChu" class="form-label"></label>
+                                <textarea asp-for="GhiChu" rows="2" class="form-control" placeholder="Yêu cầu thêm (không bắt buộc)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card-soft position-sticky" style="top:90px">
+                    <div class="card-head"><h6>Thông tin lịch hẹn</h6></div>
+                    <div class="card-body">
+                        <div id="bacSiDaChon" class="doctor-pick mb-3 @(Model.BacSiDaChon == null ? "d-none" : "")">
+                            @if (Model.BacSiDaChon != null)
+                            {
+                                <partial name="_AnhBacSi" model="Model.BacSiDaChon" />
+                                <div><div class="fw-bold">@Model.BacSiDaChon.HocVi.TenVietTat() @Model.BacSiDaChon.HoTen</div><div class="small text-muted">@Model.BacSiDaChon.ChuyenKhoa?.TenChuyenKhoa</div></div>
+                            }
+                        </div>
+                        <ul class="list-unstyled small mb-3">
+                            <li class="d-flex justify-content-between py-2 border-bottom"><span class="text-muted"><i class="bi bi-calendar3 me-2"></i>Ngày khám</span><strong id="tomTatNgay">—</strong></li>
+                            <li class="d-flex justify-content-between py-2 border-bottom"><span class="text-muted"><i class="bi bi-clock me-2"></i>Thời gian</span><strong id="tomTatGio">—</strong></li>
+                            <li class="d-flex justify-content-between py-2"><span class="text-muted"><i class="bi bi-hourglass-split me-2"></i>Trạng thái</span><span class="status status-pending">Chờ xác nhận</span></li>
+                        </ul>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg"><i class="bi bi-calendar-check me-1"></i>Xác nhận đặt lịch</button>
+                        <p class="small text-muted mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>Phòng khám làm việc Thứ 2 - Thứ 7, 07:00 - 17:30. Lịch sẽ được nhân viên xác nhận trước giờ khám.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const selKhoa = document.getElementById('MaChuyenKhoa');
+            const selBacSi = document.getElementById('MaBacSi');
+            const inNgay = document.getElementById('NgayKham');
+            const inBd = document.getElementById('GioBatDau');
+            const inKt = document.getElementById('GioKetThuc');
+            const luoi = document.getElementById('khungGio');
+            const thongBao = document.getElementById('khungGioThongBao');
+            const urlBacSi = '@Url.Action("LayTheoChuyenKhoa", "BacSi")';
+            const urlKhungGio = '@Url.Action("KhungGioDaDat", "LichKham")';
+            let dsBacSi = [];
+
+            // Khung giờ 30 phút: sáng 07:30 - 11:30, chiều 13:30 - 17:00
+            const khung = [];
+            for (let m = 7 * 60 + 30; m < 11 * 60 + 30; m += 30) khung.push(m);
+            for (let m = 13 * 60 + 30; m < 17 * 60; m += 30) khung.push(m);
+            const hhmm = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+            const sangPhut = s => { const p = s.split(':'); return +p[0] * 60 + +p[1]; };
+
+            function capNhatBuoc() {
+                document.getElementById('ts2').classList.toggle('on', !!selBacSi.value);
+                document.getElementById('ts3').classList.toggle('on', !!(selBacSi.value && inNgay.value && inBd.value && inKt.value));
+                const ngay = inNgay.value ? new Date(inNgay.value + 'T00:00') : null;
+                document.getElementById('tomTatNgay').textContent = ngay ? ngay.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
+                document.getElementById('tomTatGio').textContent = inBd.value && inKt.value ? inBd.value.substring(0, 5) + ' - ' + inKt.value.substring(0, 5) : '—';
+            }
+
+            function hienBacSi() {
+                const box = document.getElementById('bacSiDaChon');
+                const bs = dsBacSi.find(b => String(b.maBacSi) === selBacSi.value);
+                if (!bs) { if (!selBacSi.value) box.classList.add('d-none'); return; }
+                const anh = bs.hinhAnh ? `<img src="${bs.hinhAnh}" class="doctor-photo" alt="">` : `<div class="doctor-photo initials">${bs.chuCai}</div>`;
+                box.innerHTML = `${anh}<div><div class="fw-bold">${bs.hoTen}</div><div class="small text-muted">${bs.chuyenKhoa}</div></div>`;
+                box.classList.remove('d-none');
+            }
+
+            async function taiBacSi(giuLai) {
+                const res = await fetch(urlBacSi + '?maChuyenKhoa=' + (selKhoa.value || ''));
+                dsBacSi = await res.json();
+                const cu = selBacSi.value;
+                selBacSi.innerHTML = '<option value="">-- Chọn bác sĩ --</option>' +
+                    dsBacSi.map(b => `<option value="${b.maBacSi}">${b.hoTen} · ${b.chuyenKhoa}</option>`).join('');
+                if (giuLai && dsBacSi.some(b => String(b.maBacSi) === cu)) selBacSi.value = cu;
+                hienBacSi(); taiKhungGio(); capNhatBuoc();
+            }
+
+            async function taiKhungGio() {
+                luoi.innerHTML = '';
+                if (!selBacSi.value || !inNgay.value) { thongBao.textContent = 'Chọn bác sĩ và ngày khám để xem các khung giờ còn trống.'; return; }
+                const ngay = new Date(inNgay.value + 'T00:00');
+                if (ngay.getDay() === 0) { thongBao.textContent = 'Phòng khám nghỉ Chủ nhật, vui lòng chọn ngày khác.'; return; }
+                const res = await fetch(`${urlKhungGio}?maBacSi=${selBacSi.value}&ngay=${inNgay.value}`);
+                const daDat = (await res.json()).map(x => [sangPhut(x.batDau), sangPhut(x.ketThuc)]);
+                const now = new Date();
+                const laHomNay = ngay.toDateString() === now.toDateString();
+                const phutHienTai = now.getHours() * 60 + now.getMinutes();
+                let soTrong = 0;
+                khung.forEach(m => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button'; btn.className = 'slot'; btn.textContent = hhmm(m);
+                    const ban = daDat.some(([a, b]) => a < m + 30 && m < b);
+                    const qua = laHomNay && m <= phutHienTai;
+                    if (ban || qua) { btn.disabled = true; btn.classList.add('busy'); btn.title = ban ? 'Đã có lịch' : 'Đã qua'; }
+                    else soTrong++;
+                    if (inBd.value && inBd.value.substring(0, 5) === hhmm(m) && !btn.disabled) btn.classList.add('selected');
+                    btn.addEventListener('click', () => {
+                        luoi.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        inBd.value = hhmm(m); inKt.value = hhmm(m + 30);
+                        capNhatBuoc();
+                    });
+                    luoi.appendChild(btn);
+                });
+                thongBao.textContent = soTrong > 0 ? `Còn ${soTrong} khung giờ trống. Bạn cũng có thể tự nhập giờ bắt đầu/kết thúc.` : 'Bác sĩ đã kín lịch ngày này, vui lòng chọn ngày khác.';
+            }
+
+            selKhoa.addEventListener('change', () => taiBacSi(false));
+            selBacSi.addEventListener('change', () => { hienBacSi(); taiKhungGio(); capNhatBuoc(); });
+            inNgay.addEventListener('change', () => { taiKhungGio(); capNhatBuoc(); });
+            [inBd, inKt].forEach(i => i.addEventListener('change', () => {
+                if (i === inBd && inBd.value && !inKt.value) inKt.value = hhmm(sangPhut(inBd.value) + 30);
+                capNhatBuoc();
+            }));
+            taiBacSi(true);
+        })();
+    </script>
+}
