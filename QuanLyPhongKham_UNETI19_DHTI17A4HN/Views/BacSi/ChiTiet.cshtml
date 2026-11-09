@@ -1,0 +1,58 @@
+@* Họ và tên: Lê Quang Trung - Mã sinh viên: 23103100270
+   Nội dung thực hiện: Trang hồ sơ bác sĩ công khai. *@
+@model BacSiChiTietViewModel
+@{
+    var b = Model.BacSi;
+    ViewData["Title"] = b.HoTen;
+}
+<section class="page-hero">
+    <div class="container">
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li><li class="breadcrumb-item"><a asp-action="DanhSach">Bác sĩ</a></li><li class="breadcrumb-item active">@b.HoTen</li></ol></nav>
+    </div>
+</section>
+<section class="section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card-soft p-4">
+                    <div class="d-flex gap-4 flex-wrap">
+                        <partial name="_AnhBacSi" model="b" view-data='new ViewDataDictionary(ViewData) { ["css"] = "" }' />
+                        <div class="flex-grow-1">
+                            <span class="hero-badge mb-2">@b.ChuyenKhoa?.TenChuyenKhoa</span>
+                            <h2 class="fw-bold mt-2 mb-1">@b.HocVi.TenVietTat() @b.HoTen</h2>
+                            <div class="text-muted mb-3">@b.HocVi.TenHienThi() · @b.ChuyenMon</div>
+                            <div class="d-flex flex-wrap gap-4 small">
+                                <div><i class="bi bi-people text-primary me-1"></i><strong>@Model.SoLuotKham</strong> lượt khám</div>
+                                <div><i class="bi bi-door-open text-primary me-1"></i>Phòng @b.ChuyenKhoa?.SoPhong</div>
+                                <div><i class="bi bi-clock text-primary me-1"></i>T2 - T7, 07:00 - 17:30</div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-4" />
+                    <h6 class="fw-bold">Giới thiệu</h6>
+                    <p class="text-muted mb-0">@b.HocVi.TenHienThi() @b.HoTen hiện công tác tại chuyên khoa @b.ChuyenKhoa?.TenChuyenKhoa của PhongKhamCare, chuyên sâu về @b.ChuyenMon.ToLower(). @b.ChuyenKhoa?.MoTa</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card-soft p-4 mb-3">
+                    <h6 class="fw-bold mb-2">Đặt lịch với bác sĩ</h6>
+                    <p class="small text-muted">Chọn ngày và khung giờ trống, phòng khám sẽ xác nhận lịch của bạn.</p>
+                    <a asp-controller="LichKham" asp-action="DatLich" asp-route-maBacSi="@b.MaBacSi" class="btn btn-primary w-100"><i class="bi bi-calendar-plus me-1"></i>Đặt lịch khám ngay</a>
+                </div>
+                @if (Model.BacSiCungKhoa.Any())
+                {
+                    <div class="card-soft p-3">
+                        <h6 class="fw-bold px-1">Bác sĩ cùng chuyên khoa</h6>
+                        @foreach (var x in Model.BacSiCungKhoa)
+                        {
+                            <a asp-action="ChiTiet" asp-route-id="@x.MaBacSi" class="d-flex align-items-center gap-2 p-2 rounded-3 text-dark doctor-pick mb-2" style="background:#f7f9fc">
+                                <partial name="_AnhBacSi" model="x" />
+                                <div><div class="fw-semibold small">@x.HocVi.TenVietTat() @x.HoTen</div><div class="text-muted" style="font-size:.75rem">@x.ChuyenMon</div></div>
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

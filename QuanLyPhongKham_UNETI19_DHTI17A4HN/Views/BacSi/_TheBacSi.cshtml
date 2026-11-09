@@ -1,0 +1,16 @@
+@* Họ và tên: Lê Quang Trung - Mã sinh viên: 23103100270
+   Nội dung thực hiện: Thẻ bác sĩ dùng ở trang chủ và trang tìm bác sĩ. *@
+@model BacSi
+@{
+    int soLuot = ViewData["SoLuot"] is int n ? n : 0;
+}
+<div class="doctor-card">
+    <a asp-controller="BacSi" asp-action="ChiTiet" asp-route-id="@Model.MaBacSi"><partial name="_AnhBacSi" model="Model" /></a>
+    <div class="info">
+        <a asp-controller="BacSi" asp-action="ChiTiet" asp-route-id="@Model.MaBacSi" class="name">@Model.HocVi.TenVietTat() @Model.HoTen</a>
+        <div class="spec">@Model.ChuyenKhoa?.TenChuyenKhoa</div>
+        <div class="expertise mb-2"><i class="bi bi-award text-primary me-1"></i>@Model.ChuyenMon</div>
+        <div class="small text-muted mb-2"><i class="bi bi-people me-1"></i>@soLuot lượt khám</div>
+        <a asp-controller="LichKham" asp-action="DatLich" asp-route-maBacSi="@Model.MaBacSi" class="btn btn-primary btn-sm w-100"><i class="bi bi-calendar-plus me-1"></i>Đặt lịch khám</a>
+    </div>
+</div>
