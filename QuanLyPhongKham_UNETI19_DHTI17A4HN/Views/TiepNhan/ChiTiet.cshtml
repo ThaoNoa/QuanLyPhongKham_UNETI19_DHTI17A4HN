@@ -1,6 +1,5 @@
 @* Họ và tên: Đỗ Huy Tùng - Mã sinh viên: 23103100296
-   Nội dung thực hiện: Chi tiết lịch khám (quản trị/bác sĩ) - tiến trình trạng thái, thông tin lịch, bệnh nhân,
-   các lần khám trước; nút quay lại trang trước. *@
+   Nội dung thực hiện: Chi tiết lịch khám (quản trị/bác sĩ) - tiến trình trạng thái, nút thao tác theo trạng thái và quyền. *@
 @model LichKham
 @{
     ViewData["Title"] = $"Lịch khám #LK{Model.MaLichKham:00000}";
@@ -13,6 +12,36 @@
 <div class="card-soft p-4 mb-3">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div class="flex-grow-1" style="max-width:560px"><partial name="~/Views/LichKham/_TienTrinh.cshtml" model="Model.TrangThai" /></div>
+        <div class="d-flex gap-2 flex-wrap">
+            @if (laQuanTri && Model.TrangThai == TrangThaiLichKham.ChoXacNhan)
+            {
+                <form asp-action="XacNhan" asp-route-id="@Model.MaLichKham" method="post"><button class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Xác nhận lịch</button></form>
+                <button type="button" class="btn btn-outline-danger" data-confirm-url="@Url.Action("Huy", new { id = Model.MaLichKham })"
+                        data-confirm-title="Hủy lịch khám" data-confirm-text="Hủy lịch khám của @Model.BenhNhan?.HoTen?" data-confirm-reason="true" data-confirm-btn="Hủy lịch"><i class="bi bi-x-circle me-1"></i>Hủy lịch</button>
+            }
+            @if (Model.TrangThai == TrangThaiLichKham.DaXacNhan)
+            {
+                if (Model.NgayKham <= DateTime.Today)
+                {
+                    <form asp-action="DaKham" asp-route-id="@Model.MaLichKham" method="post"><button class="btn btn-teal"><i class="bi bi-clipboard2-check me-1"></i>Ghi nhận đã khám</button></form>
+                }
+                else
+                {
+                    <span class="small text-muted"><i class="bi bi-info-circle me-1"></i>Có thể ghi nhận Đã khám từ ngày @Model.NgayKham.ToString("dd/MM/yyyy")</span>
+                }
+            }
+            @if (Model.TrangThai == TrangThaiLichKham.DaKham)
+            {
+                if (Model.KetQuaKham == null)
+                {
+                    <a asp-controller="KetQuaKham" asp-action="Create" asp-route-maLichKham="@Model.MaLichKham" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i>Nhập kết quả khám</a>
+                }
+                else
+                {
+                    <a asp-controller="KetQuaKham" asp-action="Details" asp-route-id="@Model.KetQuaKham.MaKetQua" class="btn btn-teal"><i class="bi bi-clipboard2-pulse me-1"></i>Xem kết quả</a>
+                }
+            }
+        </div>
     </div>
 </div>
 <div class="row g-3">

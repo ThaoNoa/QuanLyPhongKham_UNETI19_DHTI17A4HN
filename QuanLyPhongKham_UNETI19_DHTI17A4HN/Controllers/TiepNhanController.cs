@@ -1,7 +1,8 @@
 // Họ và tên: Đỗ Huy Tùng
 // Mã sinh viên: 23103100296
-// Nội dung thực hiện: Tiếp nhận lịch khám - danh sách lịch cần xử lý (tìm theo bệnh nhân/bác sĩ,
-// lọc chuyên khoa/trạng thái/ngày, sắp xếp theo ngày khám, phân trang, đếm số lịch theo trạng thái); chi tiết lịch khám.
+// Nội dung thực hiện: Tiếp nhận và xử lý lịch khám - danh sách lịch cần xử lý (tìm theo bệnh nhân/bác sĩ,
+// lọc chuyên khoa/trạng thái/ngày, sắp xếp theo ngày khám, phân trang); xác nhận / hủy lịch (kiểm tra lại trùng lịch);
+// quản lý luồng trạng thái Chờ xác nhận -> Đã xác nhận -> Đã khám, Chờ xác nhận -> Đã hủy; lịch làm việc của bác sĩ.
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ using QuanLyPhongKham_UNETI19_DHTI17A4HN.Filters;
 using QuanLyPhongKham_UNETI19_DHTI17A4HN.Helpers;
 using QuanLyPhongKham_UNETI19_DHTI17A4HN.Models.Entities;
 using QuanLyPhongKham_UNETI19_DHTI17A4HN.Models.Enums;
+using QuanLyPhongKham_UNETI19_DHTI17A4HN.Services;
 using QuanLyPhongKham_UNETI19_DHTI17A4HN.ViewModels;
 
 namespace QuanLyPhongKham_UNETI19_DHTI17A4HN.Controllers
@@ -17,12 +19,13 @@ namespace QuanLyPhongKham_UNETI19_DHTI17A4HN.Controllers
     public class TiepNhanController : Controller
     {
         private const int KichThuocTrang = 10;
-
         private readonly PhongKhamDbContext _context;
+        private readonly LichKhamService _lichKhamService;
 
-        public TiepNhanController(PhongKhamDbContext context)
+        public TiepNhanController(PhongKhamDbContext context, LichKhamService lichKhamService)
         {
             _context = context;
+            _lichKhamService = lichKhamService;
         }
 
         // ======================= DANH SÁCH LỊCH CẦN XỬ LÝ =======================
@@ -101,6 +104,135 @@ namespace QuanLyPhongKham_UNETI19_DHTI17A4HN.Controllers
                 .Where(l => l.MaBenhNhan == lich.MaBenhNhan && l.MaLichKham != id && l.TrangThai == TrangThaiLichKham.DaKham)
                 .OrderByDescending(l => l.NgayKham).Take(5).ToListAsync();
             return View(lich);
+        }
+
+        // ======================= XỬ LÝ TRẠNG THÁI =======================
+
+        // POST: /TiepNhan/XacNhan/5 - Chờ xác nhận -> Đã xác nhận (bệnh nhân không được tự xác nhận)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [PhanQuyen(VaiTro.Admin, VaiTro.NhanVien)]
+        public async Task<IActionResult> XacNhan(int id, string? returnUrl)
+        {
+            var lich = await _context.LichKhams.FindAsync(id);
+            if (lich == null) return NotFound();
+
+            if (!LichKhamService.ChoPhepChuyen(lich.TrangThai, TrangThaiLichKham.DaXacNhan))
+            {
+                TempData["Loi"] = $"Chỉ lịch Chờ xác nhận mới được xác nhận (lịch hiện ở trạng thái {lich.TrangThai.TenHienThi()}).";
+                return QuayLai(returnUrl, id);
+            }
+            if (lich.NgayKham.Date.Add(lich.GioBatDau) < DateTime.Now)
+            {
+                TempData["Loi"] = "Lịch đã quá giờ hẹn, không thể xác nhận. Vui lòng hủy lịch.";
+                return QuayLai(returnUrl, id);
+            }
+
+            // Kiểm tra lại điều kiện trùng lịch tại thời điểm xác nhận
+            var loi = await _lichKhamService.KiemTraKhiXacNhanAsync(lich);
+            if (loi != null)
+            {
+                TempData["Loi"] = loi;
+                return QuayLai(returnUrl, id);
+            }
+
+            lich.TrangThai = TrangThaiLichKham.DaXacNhan;
+            await _context.SaveChangesAsync();
+            TempData["ThanhCong"] = $"Đã xác nhận lịch #LK{id:00000}.";
+            return QuayLai(returnUrl, id);
+        }
+
+        // POST: /TiepNhan/Huy/5 - Chờ xác nhận -> Đã hủy
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [PhanQuyen(VaiTro.Admin, VaiTro.NhanVien)]
+        public async Task<IActionResult> Huy(int id, string? lyDo, string? returnUrl)
+        {
+            var lich = await _context.LichKhams.FindAsync(id);
+            if (lich == null) return NotFound();
+
+            if (!LichKhamService.ChoPhepChuyen(lich.TrangThai, TrangThaiLichKham.DaHuy))
+            {
+                TempData["Loi"] = $"Chỉ lịch Chờ xác nhận mới được hủy (lịch hiện ở trạng thái {lich.TrangThai.TenHienThi()}).";
+                return QuayLai(returnUrl, id);
+            }
+
+            lich.TrangThai = TrangThaiLichKham.DaHuy;
+            lich.GhiChu = "Phòng khám hủy" + (string.IsNullOrWhiteSpace(lyDo) ? "" : ": " + lyDo.Trim());
+            await _context.SaveChangesAsync();
+            TempData["ThanhCong"] = $"Đã hủy lịch #LK{id:00000}.";
+            return QuayLai(returnUrl, id);
+        }
+
+        // POST: /TiepNhan/DaKham/5 - Đã xác nhận -> Đã khám (không cho chuyển thẳng từ Chờ xác nhận)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [PhanQuyen(VaiTro.Admin, VaiTro.NhanVien, VaiTro.BacSi)]
+        public async Task<IActionResult> DaKham(int id, string? returnUrl)
+        {
+            var lich = await _context.LichKhams.Include(l => l.BacSi).FirstOrDefaultAsync(l => l.MaLichKham == id);
+            if (lich == null) return NotFound();
+
+            if (HttpContext.Session.LayVaiTro() == VaiTro.BacSi && lich.BacSi?.MaTaiKhoan != HttpContext.Session.LayMaTaiKhoan())
+                return RedirectToAction("TuChoiTruyCap", "TaiKhoan");
+
+            if (!LichKhamService.ChoPhepChuyen(lich.TrangThai, TrangThaiLichKham.DaKham))
+            {
+                TempData["Loi"] = lich.TrangThai == TrangThaiLichKham.ChoXacNhan
+                    ? "Lịch chưa được xác nhận, không thể chuyển trực tiếp sang Đã khám."
+                    : $"Không thể chuyển lịch từ {lich.TrangThai.TenHienThi()} sang Đã khám.";
+                return QuayLai(returnUrl, id);
+            }
+            if (lich.NgayKham.Date > DateTime.Today)
+            {
+                TempData["Loi"] = "Chưa đến ngày khám, không thể ghi nhận Đã khám.";
+                return QuayLai(returnUrl, id);
+            }
+
+            lich.TrangThai = TrangThaiLichKham.DaKham;
+            await _context.SaveChangesAsync();
+            TempData["ThanhCong"] = "Đã ghi nhận bệnh nhân đã khám. Hãy cập nhật kết quả khám.";
+            return RedirectToAction("Create", "KetQuaKham", new { maLichKham = id });
+        }
+
+        private IActionResult QuayLai(string? returnUrl, int id)
+        {
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
+            return RedirectToAction(nameof(ChiTiet), new { id });
+        }
+
+        // ======================= LỊCH LÀM VIỆC CỦA BÁC SĨ =======================
+
+        // GET: /TiepNhan/LichCuaBacSi?ngay=2026-10-20
+        [PhanQuyen(VaiTro.BacSi)]
+        public async Task<IActionResult> LichCuaBacSi(DateTime? ngay)
+        {
+            var maTaiKhoan = HttpContext.Session.LayMaTaiKhoan();
+            var bacSi = await _context.BacSis.AsNoTracking().Include(b => b.ChuyenKhoa)
+                .FirstOrDefaultAsync(b => b.MaTaiKhoan == maTaiKhoan);
+            if (bacSi == null)
+            {
+                TempData["Loi"] = "Tài khoản chưa được gán hồ sơ bác sĩ. Vui lòng liên hệ quản trị viên.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var ngayXem = (ngay ?? DateTime.Today).Date;
+            var vm = new LichBacSiViewModel
+            {
+                BacSi = bacSi,
+                Ngay = ngayXem,
+                LichTrongNgay = await _context.LichKhams.AsNoTracking()
+                    .Include(l => l.BenhNhan).Include(l => l.KetQuaKham)
+                    .Where(l => l.MaBacSi == bacSi.MaBacSi && l.NgayKham == ngayXem && l.TrangThai != TrangThaiLichKham.DaHuy)
+                    .OrderBy(l => l.GioBatDau).ToListAsync(),
+                LichSapToi = await _context.LichKhams.AsNoTracking()
+                    .Include(l => l.BenhNhan)
+                    .Where(l => l.MaBacSi == bacSi.MaBacSi && l.NgayKham > ngayXem && l.NgayKham <= ngayXem.AddDays(7)
+                             && (l.TrangThai == TrangThaiLichKham.DaXacNhan || l.TrangThai == TrangThaiLichKham.ChoXacNhan))
+                    .OrderBy(l => l.NgayKham).ThenBy(l => l.GioBatDau).ToListAsync(),
+                SoChuaNhapKetQua = await _context.LichKhams.CountAsync(l => l.MaBacSi == bacSi.MaBacSi && l.TrangThai == TrangThaiLichKham.DaKham && l.KetQuaKham == null)
+            };
+            return View(vm);
         }
     }
 }
