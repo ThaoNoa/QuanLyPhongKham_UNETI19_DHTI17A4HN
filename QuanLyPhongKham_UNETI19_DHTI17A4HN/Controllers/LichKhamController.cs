@@ -70,8 +70,10 @@ namespace QuanLyPhongKham_UNETI19_DHTI17A4HN.Controllers
 
             // Xác định bệnh nhân: bệnh nhân tự đặt -> lấy từ Session; nhân viên -> chọn trên form
             int? maBenhNhan = laNhanVien ? vm.MaBenhNhan : await LayMaBenhNhanCuaToiAsync();
+            // Bệnh nhân không có ô chọn bệnh nhân trên form -> lỗi đưa lên phần thông báo chung để luôn hiển thị
             if (maBenhNhan == null)
-                ModelState.AddModelError(nameof(vm.MaBenhNhan), laNhanVien ? "Vui lòng chọn bệnh nhân." : "Không tìm thấy hồ sơ bệnh nhân của bạn.");
+                ModelState.AddModelError(laNhanVien ? nameof(vm.MaBenhNhan) : string.Empty,
+                    laNhanVien ? "Vui lòng chọn bệnh nhân." : "Tài khoản của bạn chưa có hồ sơ bệnh nhân. Vui lòng liên hệ phòng khám.");
             else if (!await _context.BenhNhans.AnyAsync(b => b.MaBenhNhan == maBenhNhan && b.TrangThai))
                 ModelState.AddModelError(nameof(vm.MaBenhNhan), "Bệnh nhân không tồn tại hoặc đã ngừng theo dõi.");
 
@@ -148,7 +150,11 @@ namespace QuanLyPhongKham_UNETI19_DHTI17A4HN.Controllers
         public async Task<IActionResult> LichCuaToi(TrangThaiLichKham? trangThai, int trang = 1)
         {
             var maBenhNhan = await LayMaBenhNhanCuaToiAsync();
-            if (maBenhNhan == null) return RedirectToAction("HoSo", "BenhNhan");
+            if (maBenhNhan == null)
+            {
+                TempData["Loi"] = "Tài khoản của bạn chưa có hồ sơ bệnh nhân. Vui lòng liên hệ phòng khám để được hỗ trợ.";
+                return RedirectToAction("Index", "Home");
+            }
 
             // Chỉ lấy lịch của chính bệnh nhân đang đăng nhập
             var lichCuaToi = _context.LichKhams.AsNoTracking().Where(l => l.MaBenhNhan == maBenhNhan);

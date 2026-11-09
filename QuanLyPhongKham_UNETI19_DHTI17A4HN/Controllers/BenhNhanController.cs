@@ -1,7 +1,8 @@
 // Họ và tên: Trần Anh Đức
 // Mã sinh viên: 23103100284
 // Nội dung thực hiện: Quản lý bệnh nhân (Admin/Nhân viên) - tìm kiếm, lọc, sắp xếp, phân trang, thêm, sửa, xem, xóa;
-// Hồ sơ cá nhân của bệnh nhân (bệnh nhân chỉ xem/sửa hồ sơ của chính mình, lấy theo Session).
+// Hồ sơ cá nhân của bệnh nhân (bệnh nhân chỉ xem/sửa hồ sơ của chính mình, lấy theo Session);
+// không xóa hồ sơ đang gắn tài khoản đăng nhập, báo rõ khi tài khoản không còn hồ sơ.
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuanLyPhongKham_UNETI19_DHTI17A4HN.Data;
@@ -136,6 +137,12 @@ namespace QuanLyPhongKham_UNETI19_DHTI17A4HN.Controllers
                 TempData["Loi"] = $"Không thể xóa bệnh nhân {benhNhan.HoTen} vì đã có lịch khám. Hãy chuyển sang trạng thái ngừng theo dõi.";
                 return RedirectToAction(nameof(Index));
             }
+            // Hồ sơ đang gắn tài khoản: xóa hồ sơ sẽ làm tài khoản đăng nhập được nhưng không còn dữ liệu
+            if (benhNhan.MaTaiKhoan != null)
+            {
+                TempData["Loi"] = $"Không thể xóa bệnh nhân {benhNhan.HoTen} vì hồ sơ đang gắn với tài khoản đăng nhập. Hãy chuyển sang trạng thái ngừng theo dõi.";
+                return RedirectToAction(nameof(Index));
+            }
             _context.BenhNhans.Remove(benhNhan);
             await _context.SaveChangesAsync();
             TempData["ThanhCong"] = $"Đã xóa bệnh nhân {benhNhan.HoTen}.";
@@ -155,7 +162,7 @@ namespace QuanLyPhongKham_UNETI19_DHTI17A4HN.Controllers
         public async Task<IActionResult> HoSo()
         {
             var benhNhan = await LayHoSoCuaToiAsync();
-            if (benhNhan == null) return NotFound();
+            if (benhNhan == null) return KhongCoHoSo();
             ViewBag.SoLichKham = await _context.LichKhams.CountAsync(l => l.MaBenhNhan == benhNhan.MaBenhNhan);
             ViewBag.SoDaKham = await _context.LichKhams.CountAsync(l => l.MaBenhNhan == benhNhan.MaBenhNhan && l.TrangThai == TrangThaiLichKham.DaKham);
             return View(benhNhan);
@@ -167,7 +174,7 @@ namespace QuanLyPhongKham_UNETI19_DHTI17A4HN.Controllers
         public async Task<IActionResult> HoSo([Bind("HoTen,NgaySinh,GioiTinh,SoDienThoai,Email,DiaChi,SoBHYT")] BenhNhan model)
         {
             var benhNhan = await LayHoSoCuaToiAsync();
-            if (benhNhan == null) return NotFound();
+            if (benhNhan == null) return KhongCoHoSo();
 
             model.MaBenhNhan = benhNhan.MaBenhNhan;
             await KiemTraNghiepVuAsync(model);
@@ -192,6 +199,13 @@ namespace QuanLyPhongKham_UNETI19_DHTI17A4HN.Controllers
 
             TempData["ThanhCong"] = "Đã lưu hồ sơ cá nhân.";
             return RedirectToAction(nameof(HoSo));
+        }
+
+        // Tài khoản bệnh nhân nhưng không có hồ sơ -> báo rõ thay vì trang 404
+        private IActionResult KhongCoHoSo()
+        {
+            TempData["Loi"] = "Tài khoản của bạn chưa có hồ sơ bệnh nhân. Vui lòng liên hệ phòng khám để được hỗ trợ.";
+            return RedirectToAction("Index", "Home");
         }
 
         private static void CapNhatThongTin(BenhNhan dich, BenhNhan nguon)
