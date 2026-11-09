@@ -1,0 +1,157 @@
+@* Họ và tên: Trần Phương Thảo - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Trang thống kê LINQ theo năm - bệnh nhân theo khoa, khoa đông nhất, trung bình doanh thu một năm,
+   doanh thu theo tháng/bác sĩ/chuyên khoa, dịch vụ dùng nhiều; xuất Excel. *@
+@model ThongKeViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Thống kê";
+    ViewData["Subtitle"] = $"Báo cáo hoạt động và doanh thu năm {Model.Nam}";
+    Layout = "_AdminLayout";
+    decimal maxBs = Model.DoanhThuTheoBacSi.Any() ? Model.DoanhThuTheoBacSi.Max(x => x.DoanhThu) : 1;
+    int tongBnKhoa = Model.BenhNhanTheoKhoa.Sum(x => x.SoLuong);
+}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <form method="get" class="d-flex align-items-center gap-2">
+        <label class="small text-muted text-nowrap" for="nam">Năm thống kê</label>
+        <select name="nam" id="nam" class="form-select" style="width:120px" data-auto-submit>
+            @foreach (var n in Model.CacNam)
+            {
+                <option value="@n" selected="@(n == Model.Nam)">@n</option>
+            }
+        </select>
+    </form>
+    <a asp-action="XuatExcel" asp-route-nam="@Model.Nam" class="btn btn-teal"><i class="bi bi-file-earmark-excel me-1"></i>Xuất báo cáo Excel</a>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-6 col-xl-3"><div class="highlight-card h-100"><div class="lbl">Tổng doanh thu năm @Model.Nam</div><div class="val">@Model.TongDoanhThuNamChon.DinhDangTien()</div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="stat-card"><div class="ico tone-blue"><i class="bi bi-graph-up-arrow"></i></div><div><div class="val fs-5">@Model.TrungBinhThangNamChon.DinhDangTien()</div><div class="lbl">Trung bình / tháng (năm @Model.Nam)</div></div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="stat-card"><div class="ico tone-teal"><i class="bi bi-calculator"></i></div><div><div class="val fs-5">@Model.TrungBinhDoanhThuNam.DinhDangTien()</div><div class="lbl">Trung bình doanh thu một năm (@Model.DoanhThuTheoNam.Count năm)</div></div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="stat-card"><div class="ico tone-orange"><i class="bi bi-trophy"></i></div><div><div class="val fs-5">@(Model.KhoaDongNhat?.Ten ?? "—")</div><div class="lbl">Khoa đông bệnh nhân nhất (@(Model.KhoaDongNhat?.SoLuong ?? 0) BN)</div></div></div></div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-xl-8">
+        <div class="card-soft h-100">
+            <div class="card-head"><h6>Doanh thu dịch vụ theo tháng - @Model.Nam</h6></div>
+            <div class="card-body"><div class="chart-box"><canvas id="bdThang" role="img" aria-label="Doanh thu theo tháng"></canvas></div></div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="card-soft h-100">
+            <div class="card-head"><h6>Doanh thu theo năm</h6></div>
+            <div class="table-responsive">
+                <table class="table table-modern">
+                    <thead><tr><th>Năm</th><th class="text-center">Lượt khám</th><th class="text-end">Doanh thu</th></tr></thead>
+                    <tbody>
+                        @foreach (var y in Model.DoanhThuTheoNam)
+                        {
+                            <tr class="@(y.Ten == Model.Nam.ToString() ? "table-primary" : "")"><td class="fw-semibold">@y.Ten</td><td class="text-center">@y.SoLuong</td><td class="text-end">@y.DoanhThu.DinhDangTien()</td></tr>
+                        }
+                    </tbody>
+                    <tfoot><tr><th colspan="2">Trung bình một năm</th><th class="text-end text-primary">@Model.TrungBinhDoanhThuNam.DinhDangTien()</th></tr></tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-xl-6">
+        <div class="card-soft h-100">
+            <div class="card-head"><h6>Số bệnh nhân theo chuyên khoa</h6><span class="small text-muted">không tính lịch đã hủy</span></div>
+            <div class="table-responsive">
+                <table class="table table-modern">
+                    <thead><tr><th>Chuyên khoa</th><th class="text-center">Bệnh nhân</th><th class="text-center">Lượt đăng ký</th><th style="width:34%">Tỷ trọng</th></tr></thead>
+                    <tbody>
+                        @foreach (var k in Model.BenhNhanTheoKhoa)
+                        {
+                            var pt = tongBnKhoa == 0 ? 0 : k.SoLuong * 100.0 / tongBnKhoa;
+                            <tr>
+                                <td class="fw-semibold">@k.Ten @if (k == Model.KhoaDongNhat) { <i class="bi bi-trophy-fill text-warning ms-1" title="Đông nhất"></i> }</td>
+                                <td class="text-center">@k.SoLuong</td>
+                                <td class="text-center">@((int)k.DoanhThu)</td>
+                                <td><div class="d-flex align-items-center gap-2"><div class="progress progress-thin flex-grow-1"><div class="progress-bar" style="width:@pt.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)%;background:#13a089"></div></div><span class="small text-muted" style="width:42px">@pt.ToString("0.0")%</span></div></td>
+                            </tr>
+                        }
+                        @if (!Model.BenhNhanTheoKhoa.Any()) { <tr><td colspan="4"><div class="empty-state py-4">Chưa có dữ liệu.</div></td></tr> }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card-soft h-100">
+            <div class="card-head"><h6>Doanh thu theo chuyên khoa</h6></div>
+            <div class="card-body"><div class="chart-box" style="height:260px"><canvas id="bdKhoa" role="img" aria-label="Doanh thu theo chuyên khoa"></canvas></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-7">
+        <div class="card-soft h-100">
+            <div class="card-head"><h6>Doanh thu theo bác sĩ</h6></div>
+            <div class="table-responsive">
+                <table class="table table-modern">
+                    <thead><tr><th>#</th><th>Bác sĩ</th><th class="text-center">Lượt khám</th><th class="text-end">Doanh thu</th><th style="width:22%"></th></tr></thead>
+                    <tbody>
+                        @{ int i = 0; }
+                        @foreach (var b in Model.DoanhThuTheoBacSi)
+                        {
+                            <tr>
+                                <td class="text-muted">@(++i)</td>
+                                <td><div class="fw-semibold">@b.Ten</div><div class="sub">@b.PhuDe</div></td>
+                                <td class="text-center">@b.SoLuong</td>
+                                <td class="text-end fw-semibold">@b.DoanhThu.DinhDangTien()</td>
+                                <td><div class="progress progress-thin"><div class="progress-bar" style="width:@((b.DoanhThu * 100 / maxBs).ToString("0", System.Globalization.CultureInfo.InvariantCulture))%;background:var(--pk-primary)"></div></div></td>
+                            </tr>
+                        }
+                        @if (!Model.DoanhThuTheoBacSi.Any()) { <tr><td colspan="5"><div class="empty-state py-4">Chưa có doanh thu trong năm.</div></td></tr> }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-5">
+        <div class="card-soft h-100">
+            <div class="card-head"><h6>Dịch vụ được sử dụng nhiều nhất</h6></div>
+            <div class="card-body py-2">
+                <ul class="rank-list">
+                    @{ int j = 0; }
+                    @foreach (var d in Model.DichVuDungNhieu)
+                    {
+                        <li><span class="rk">@(++j)</span><div class="flex-grow-1"><div class="fw-semibold small">@d.Ten</div><div class="text-muted" style="font-size:.75rem">@d.SoLuong lượt · @d.DoanhThu.DinhDangTien()</div></div></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ChartConfig" />
+    <script>
+        new Chart(document.getElementById('bdThang'), {
+            type: 'bar',
+            data: { labels: pkThang, datasets: [{ label: 'Doanh thu', data: @Html.Raw(JsonSerializer.Serialize(Model.DoanhThuTheoThang)), backgroundColor: '#1d5fe6', hoverBackgroundColor: '#1650c7', borderRadius: 4, maxBarThickness: 34 }] },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => 'Doanh thu: ' + pkTien(c.parsed.y) } } },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: pkLuoi, border: { display: false }, ticks: { callback: v => pkTienGon(v) } } }
+            }
+        });
+        new Chart(document.getElementById('bdKhoa'), {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(JsonSerializer.Serialize(Model.DoanhThuTheoChuyenKhoa.Select(x => x.Ten))),
+                datasets: [{ label: 'Doanh thu', data: @Html.Raw(JsonSerializer.Serialize(Model.DoanhThuTheoChuyenKhoa.Select(x => x.DoanhThu))), backgroundColor: '#13a089', hoverBackgroundColor: '#0e8a75', borderRadius: 4, maxBarThickness: 22 }]
+            },
+            options: {
+                indexAxis: 'y', maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => pkTien(c.parsed.x) } } },
+                scales: { y: { grid: { display: false } }, x: { beginAtZero: true, grid: pkLuoi, border: { display: false }, ticks: { callback: v => pkTienGon(v) } } }
+            }
+        });
+    </script>
+}

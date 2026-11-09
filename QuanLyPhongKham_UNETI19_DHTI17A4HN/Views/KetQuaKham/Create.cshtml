@@ -1,0 +1,10 @@
+@* Họ và tên: Trần Phương Thảo - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Trang nhập kết quả khám. *@
+@model KetQuaKhamFormViewModel
+@{
+    ViewData["Title"] = "Nhập kết quả khám";
+    ViewData["Subtitle"] = $"Lịch #LK{Model.MaLichKham:00000}";
+    Layout = "_AdminLayout";
+}
+<partial name="_Form" model="Model" />
+@section Scripts { <partial name="_ValidationScriptsPartial" /><partial name="_TinhTien" /> }

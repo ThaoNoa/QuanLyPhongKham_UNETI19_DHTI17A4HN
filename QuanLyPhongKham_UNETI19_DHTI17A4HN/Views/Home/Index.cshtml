@@ -1,8 +1,153 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@* Họ và tên: Trần Phương Thảo (Nhóm trưởng) - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Trang chủ theo thiết kế PhongKhamCare - hero, ô tìm kiếm nhanh, chuyên khoa nổi bật,
+   bác sĩ tiêu biểu, 3 bước đặt lịch, số liệu tổng quan. *@
+@model TrangChuViewModel
+@inject IWebHostEnvironment Env
+@{
+    ViewData["Title"] = "Trang chủ";
+    bool coAnhHero = System.IO.File.Exists(System.IO.Path.Combine(Env.WebRootPath, "images", "hero-doctor.png"));
+    // Ảnh nền phòng khám (không bắt buộc): wwwroot/images/hero-bg.jpg
+    bool coAnhNen = System.IO.File.Exists(System.IO.Path.Combine(Env.WebRootPath, "images", "hero-bg.jpg"));
 }
+<section class="hero @(coAnhNen ? "hero-has-bg" : "")" style="@(coAnhNen ? $"--hero-bg: url('{Url.Content("~/images/hero-bg.jpg")}')" : "")">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7 hero-content">
+                <span class="hero-badge"><i class="bi bi-shield-check"></i>Chăm sóc sức khỏe toàn diện</span>
+                <h1>Đặt lịch khám bệnh dễ dàng<br class="d-none d-md-block" /> với đội ngũ bác sĩ chuyên môn cao</h1>
+                <p class="lead">Chúng tôi mang đến dịch vụ y tế chất lượng, hiện đại và tận tâm, giúp bạn và gia đình luôn khỏe mạnh.</p>
+                <div class="d-flex gap-2 flex-wrap mt-4">
+                    <a asp-controller="LichKham" asp-action="DatLich" class="btn btn-primary btn-lg">Đặt lịch khám ngay <i class="bi bi-arrow-right ms-1"></i></a>
+                    <a asp-controller="BacSi" asp-action="DanhSach" class="btn btn-outline-primary btn-lg bg-white"><i class="bi bi-search me-1"></i>Tìm bác sĩ</a>
+                </div>
+                <form asp-controller="BacSi" asp-action="DanhSach" method="get" class="search-panel">
+                    <div class="row g-2">
+                        <div class="col-md-5"><div class="input-icon"><i class="bi bi-search"></i><input name="tuKhoa" class="form-control" placeholder="Tên bác sĩ, chuyên môn..." /></div></div>
+                        <div class="col-md-4">
+                            <div class="input-icon"><i class="bi bi-person-badge"></i>
+                                <select name="maChuyenKhoa" class="form-select">
+                                    <option value="">Chọn chuyên khoa</option>
+                                    @foreach (var c in Model.ChuyenKhoas) { <option value="@c.MaChuyenKhoa">@c.TenChuyenKhoa</option> }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3"><button class="btn btn-teal w-100"><i class="bi bi-search me-1"></i>Tìm kiếm</button></div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-5">
+                <div class="hero-visual">
+                    <div class="hero-tagline">Sức khỏe hôm nay<br />- Hạnh phúc ngày mai
+                        <svg width="120" height="16" viewBox="0 0 120 16" fill="none"><path d="M2 10c30-8 70-8 100-2" stroke="#1d5fe6" stroke-width="1.6" stroke-linecap="round" /><path d="M104 4c3-3 8 0 5 4l-5 5-5-5c-3-4 2-7 5-4z" stroke="#1d5fe6" stroke-width="1.4" /></svg>
+                    </div>
+                    @if (coAnhHero)
+                    {
+                        <img src="~/images/hero-doctor.png" alt="Bác sĩ PhongKhamCare" />
+                    }
+                    else
+                    {
+                        <!-- Minh họa thay thế khi chưa có ảnh: đặt ảnh tại wwwroot/images/hero-doctor.png -->
+                        <svg class="hero-illustration" viewBox="0 0 440 400" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="hg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dfeaff" /><stop offset="1" stop-color="#c8dafb" /></linearGradient>
+                                <linearGradient id="hg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" /><stop offset="1" stop-color="#eef4ff" /></linearGradient>
+                            </defs>
+                            <circle cx="230" cy="215" r="165" fill="url(#hg1)" />
+                            <rect x="120" y="90" width="210" height="270" rx="22" fill="url(#hg2)" stroke="#d6e2f7" stroke-width="2" />
+                            <rect x="185" y="74" width="80" height="34" rx="10" fill="#1d5fe6" />
+                            <circle cx="225" cy="91" r="6" fill="#fff" />
+                            <rect x="150" y="135" width="150" height="12" rx="6" fill="#dbe6fb" />
+                            <rect x="150" y="160" width="110" height="10" rx="5" fill="#e8eef9" />
+                            <g transform="translate(150 192)"><rect width="22" height="22" rx="6" fill="#e2f6f2" /><path d="M6 11l4 4 7-8" stroke="#13a089" stroke-width="2.4" fill="none" stroke-linecap="round" /><rect x="34" y="6" width="110" height="10" rx="5" fill="#e8eef9" /></g>
+                            <g transform="translate(150 230)"><rect width="22" height="22" rx="6" fill="#e2f6f2" /><path d="M6 11l4 4 7-8" stroke="#13a089" stroke-width="2.4" fill="none" stroke-linecap="round" /><rect x="34" y="6" width="90" height="10" rx="5" fill="#e8eef9" /></g>
+                            <g transform="translate(150 268)"><rect width="22" height="22" rx="6" fill="#e7f0ff" /><rect x="34" y="6" width="100" height="10" rx="5" fill="#e8eef9" /></g>
+                            <g transform="translate(150 310)"><rect width="150" height="28" rx="10" fill="#1d5fe6" /><rect x="40" y="10" width="70" height="8" rx="4" fill="#fff" opacity=".9" /></g>
+                            <g transform="translate(300 230)">
+                                <circle r="48" fill="#13a089" /><path d="M-6 -22h12v16h16v12h-16v16h-12v-16h-16v-12h16z" fill="#fff" />
+                            </g>
+                            <path d="M60 300c20-30 40-30 60 0s40 30 60 0" stroke="#1d5fe6" stroke-width="3" fill="none" opacity=".25" stroke-linecap="round" />
+                        </svg>
+                    }
+                    <div class="hero-float d-none d-md-flex" style="left:0;bottom:3.5rem"><span class="ico tone-teal"><i class="bi bi-people"></i></span><div><strong>@Model.TongBenhNhan+</strong><span class="text-muted">bệnh nhân tin tưởng</span></div></div>
+                    <div class="hero-float d-none d-md-flex" style="right:0;bottom:1.2rem"><span class="ico tone-blue"><i class="bi bi-calendar2-check"></i></span><div><strong>@Model.TongLuotKham</strong><span class="text-muted">lượt khám thành công</span></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <div><h2 class="section-title">Chuyên khoa nổi bật</h2><p class="section-sub">Đa dạng chuyên khoa, đáp ứng mọi nhu cầu khám chữa bệnh của bạn.</p></div>
+            <a asp-controller="ChuyenKhoa" asp-action="DanhSach" class="link-more">Xem tất cả chuyên khoa <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="specialty-grid">
+            @foreach (var c in Model.ChuyenKhoas)
+            {
+                var gd = GiaoDienHelper.GiaoDienChuyenKhoa(c.TenChuyenKhoa);
+                <a asp-controller="BacSi" asp-action="DanhSach" asp-route-maChuyenKhoa="@c.MaChuyenKhoa" class="specialty-card">
+                    <div class="specialty-icon @gd.Tone"><partial name="_IconChuyenKhoa" model="gd.Icon" /></div>
+                    <div class="name">@c.TenChuyenKhoa</div>
+                    <div class="meta">@c.SoBacSi bác sĩ</div>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="section pt-0">
+    <div class="container">
+        <div class="section-head">
+            <div><h2 class="section-title">Bác sĩ tiêu biểu</h2><p class="section-sub">Đội ngũ bác sĩ giàu kinh nghiệm, tận tâm với người bệnh.</p></div>
+            <a asp-controller="BacSi" asp-action="DanhSach" class="link-more">Xem tất cả bác sĩ <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-3">
+            @foreach (var b in Model.BacSiTieuBieu)
+            {
+                <div class="col-md-6 col-xl-3">
+                    <partial name="~/Views/BacSi/_TheBacSi.cshtml" model="b" view-data='new ViewDataDictionary(ViewData) { ["SoLuot"] = Model.SoLuotKham.GetValueOrDefault(b.MaBacSi) }' />
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt">
+    <div class="container">
+        <h2 class="section-title">Đặt lịch khám chỉ với 3 bước đơn giản</h2>
+        <p class="section-sub mb-4">Nhanh chóng - Tiện lợi - An toàn</p>
+        <div class="steps">
+            <div class="step">
+                <span class="step-num" style="background:#1d5fe6">1</span>
+                <span class="step-ico" style="color:#1d5fe6"><i class="bi bi-calendar3"></i></span>
+                <div><h6>Chọn chuyên khoa</h6><p>Tìm chuyên khoa phù hợp với nhu cầu của bạn.</p></div>
+            </div>
+            <i class="bi bi-arrow-right step-arrow"></i>
+            <div class="step">
+                <span class="step-num" style="background:#13a089">2</span>
+                <span class="step-ico" style="color:#13a089"><i class="bi bi-person-check"></i></span>
+                <div><h6>Chọn bác sĩ &amp; thời gian</h6><p>Xem lịch trống và chọn bác sĩ phù hợp.</p></div>
+            </div>
+            <i class="bi bi-arrow-right step-arrow"></i>
+            <div class="step">
+                <span class="step-num" style="background:#7c3aed">3</span>
+                <span class="step-ico" style="color:#7c3aed"><i class="bi bi-check2-square"></i></span>
+                <div><h6>Xác nhận và hoàn tất</h6><p>Nhập thông tin và xác nhận đặt lịch khám.</p></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="card-soft">
+            <div class="stat-strip">
+                <div class="item"><div class="num">@Model.TongChuyenKhoa</div><div class="lbl">Chuyên khoa</div></div>
+                <div class="item"><div class="num">@Model.TongBacSi</div><div class="lbl">Bác sĩ đang làm việc</div></div>
+                <div class="item"><div class="num">@Model.TongBenhNhan</div><div class="lbl">Bệnh nhân</div></div>
+                <div class="item"><div class="num">@Model.TongLuotKham</div><div class="lbl">Lượt khám thành công</div></div>
+            </div>
+        </div>
+    </div>
+</section>

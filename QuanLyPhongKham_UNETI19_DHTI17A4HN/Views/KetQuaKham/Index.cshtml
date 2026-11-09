@@ -1,0 +1,93 @@
+@* Họ và tên: Trần Phương Thảo - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Danh sách kết quả khám (tìm kiếm, lọc, sắp xếp, phân trang) và các lịch đã khám chờ nhập kết quả. *@
+@model KetQuaKhamIndexViewModel
+@{
+    ViewData["Title"] = "Kết quả khám";
+    ViewData["Subtitle"] = "Chẩn đoán, đơn thuốc và dịch vụ đã sử dụng";
+    Layout = "_AdminLayout";
+    bool laAdmin = Context.Session.LayVaiTro() == VaiTro.Admin;
+}
+@if (Model.LichChoNhapKetQua.Any())
+{
+    <div class="card-soft mb-3" style="border-left:4px solid var(--pk-amber)">
+        <div class="card-head"><h6><i class="bi bi-hourglass-split text-warning me-1"></i>Lịch đã khám chờ nhập kết quả (@Model.LichChoNhapKetQua.Count)</h6></div>
+        <div class="card-body py-2">
+            <div class="row g-2">
+                @foreach (var l in Model.LichChoNhapKetQua)
+                {
+                    <div class="col-md-6 col-xl-4">
+                        <div class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-3" style="background:#fffaf0">
+                            <div class="small"><div class="fw-semibold">@l.BenhNhan?.HoTen</div><div class="text-muted">@l.NgayKham.ToString("dd/MM/yyyy") · BS @l.BacSi?.HoTen</div></div>
+                            <a asp-action="Create" asp-route-maLichKham="@l.MaLichKham" class="btn btn-sm btn-primary text-nowrap"><i class="bi bi-pencil-square"></i> Nhập</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+<form method="get" class="filter-bar mb-3">
+    <div class="row g-2">
+        <div class="col-lg-5"><div class="input-icon"><i class="bi bi-search"></i><input name="tuKhoa" value="@Model.TuKhoa" class="form-control" placeholder="Tên bệnh nhân, bác sĩ hoặc chẩn đoán..." /></div></div>
+        <div class="col-6 col-lg-2">
+            <select name="trangThai" class="form-select" data-auto-submit>
+                <option value="">Tất cả trạng thái</option>
+                @foreach (TrangThaiKetQua t in Enum.GetValues<TrangThaiKetQua>())
+                {
+                    <option value="@t" selected="@(Model.TrangThai == t)">@t.TenHienThi()</option>
+                }
+            </select>
+        </div>
+        <div class="col-6 col-lg-3">
+            <select name="sapXep" class="form-select" data-auto-submit>
+                <option value="">Ngày khám mới nhất</option>
+                <option value="ngay" selected="@(Model.SapXep == "ngay")">Ngày khám cũ nhất</option>
+                <option value="capnhat_desc" selected="@(Model.SapXep == "capnhat_desc")">Cập nhật gần đây</option>
+            </select>
+        </div>
+        <div class="col-lg-2 d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel"></i> Lọc</button>
+            <a asp-action="Index" class="btn btn-light-border"><i class="bi bi-x-lg"></i></a>
+        </div>
+    </div>
+</form>
+<div class="card-soft">
+    <div class="table-responsive">
+        <table class="table table-modern">
+            <thead><tr><th>Bệnh nhân</th><th>Ngày khám</th><th>Bác sĩ</th><th>Chẩn đoán</th><th class="text-end">Tiền dịch vụ</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead>
+            <tbody>
+                @if (!Model.DanhSach.Any())
+                {
+                    <tr><td colspan="7"><div class="empty-state"><i class="bi bi-clipboard2-x"></i>Chưa có kết quả khám phù hợp.</div></td></tr>
+                }
+                @foreach (var k in Model.DanhSach)
+                {
+                    <tr>
+                        <td><div class="fw-semibold">@k.LichKham?.BenhNhan?.HoTen</div><div class="sub">#LK@(k.MaLichKham.ToString("00000"))</div></td>
+                        <td>@k.LichKham?.NgayKham.ToString("dd/MM/yyyy")</td>
+                        <td><div>@k.LichKham?.BacSi?.HoTen</div><div class="sub">@k.LichKham?.BacSi?.ChuyenKhoa?.TenChuyenKhoa</div></td>
+                        <td style="max-width:240px"><div class="text-truncate">@k.ChanDoan</div></td>
+                        <td class="text-end fw-semibold">@k.TongTien.DinhDangTien()</td>
+                        <td><span class="@k.TrangThai.CssTrangThai()">@k.TrangThai.TenHienThi()</span></td>
+                        <td>
+                            <div class="table-actions">
+                                <a asp-action="Details" asp-route-id="@k.MaKetQua" class="btn btn-icon btn-light-border" title="Xem"><i class="bi bi-eye"></i></a>
+                                <a asp-action="Edit" asp-route-id="@k.MaKetQua" class="btn btn-icon btn-light-border" title="Sửa"><i class="bi bi-pencil"></i></a>
+                                @if (laAdmin)
+                                {
+                                    <button type="button" class="btn btn-icon btn-light-border text-danger" title="Xóa"
+                                            data-confirm-url="@Url.Action("Delete", new { id = k.MaKetQua })" data-confirm-title="Xóa kết quả khám"
+                                            data-confirm-text="Xóa kết quả khám của @k.LichKham?.BenhNhan?.HoTen? Doanh thu dịch vụ liên quan cũng bị xóa." data-confirm-btn="Xóa"><i class="bi bi-trash"></i></button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span>@Model.DanhSach.TongSoBanGhi kết quả · Trang @Model.DanhSach.TrangHienTai / @Model.DanhSach.TongSoTrang</span>
+        <partial name="_PhanTrang" model="@(new PhanTrangViewModel { TrangHienTai = Model.DanhSach.TrangHienTai, TongSoTrang = Model.DanhSach.TongSoTrang, ThamSo = Model.ThamSo() })" />
+    </div>
+</div>

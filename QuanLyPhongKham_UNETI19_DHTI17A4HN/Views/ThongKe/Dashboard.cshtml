@@ -1,0 +1,130 @@
+@* Họ và tên: Trần Phương Thảo - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Dashboard - thẻ tổng quan, biểu đồ bệnh nhân/doanh thu theo tháng (Chart.js),
+   cơ cấu trạng thái lịch, bác sĩ nhiều lịch nhất, lịch chờ xác nhận. *@
+@model DashboardViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["Subtitle"] = $"Tổng quan hoạt động phòng khám năm {Model.Nam}";
+    Layout = "_AdminLayout";
+    int tongLich = Model.SoLichChoXacNhan + Model.SoLichDaXacNhan + Model.SoLichDaKham + Model.SoLichDaHuy;
+    int maxLich = Model.BacSiNhieuLichNhat.Any() ? Model.BacSiNhieuLichNhat.Max(x => x.SoLuong) : 1;
+}
+<div class="row g-3 mb-3">
+    <div class="col-sm-6 col-xl-3"><a asp-controller="ChuyenKhoa" asp-action="DanhSach" class="stat-card"><div class="ico tone-purple"><i class="bi bi-hospital"></i></div><div><div class="val">@Model.TongChuyenKhoa</div><div class="lbl">Chuyên khoa</div></div></a></div>
+    <div class="col-sm-6 col-xl-3"><a asp-controller="BacSi" asp-action="Index" class="stat-card"><div class="ico tone-blue"><i class="bi bi-person-badge"></i></div><div><div class="val">@Model.TongBacSi</div><div class="lbl">Bác sĩ</div></div></a></div>
+    <div class="col-sm-6 col-xl-3"><a asp-controller="BenhNhan" asp-action="Index" class="stat-card"><div class="ico tone-teal"><i class="bi bi-people"></i></div><div><div class="val">@Model.TongBenhNhan</div><div class="lbl">Bệnh nhân</div></div></a></div>
+    <div class="col-sm-6 col-xl-3"><a asp-controller="TiepNhan" asp-action="Index" asp-route-trangThai="ChoXacNhan" asp-route-sapXep="ngay" class="stat-card"><div class="ico tone-orange"><i class="bi bi-hourglass-split"></i></div><div><div class="val">@Model.SoLichChoXacNhan</div><div class="lbl">Lịch chờ xác nhận</div></div></a></div>
+</div>
+<div class="row g-3 mb-3">
+    <div class="col-sm-6 col-xl-3"><div class="stat-card"><div class="ico tone-cyan"><i class="bi bi-calendar-day"></i></div><div><div class="val">@Model.SoLichHomNay</div><div class="lbl">Lịch khám hôm nay</div></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card"><div class="ico tone-teal"><i class="bi bi-clipboard2-check"></i></div><div><div class="val">@Model.SoLichDaKham</div><div class="lbl">Lịch đã khám</div></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card"><div class="ico tone-red"><i class="bi bi-x-circle"></i></div><div><div class="val">@Model.SoLichDaHuy</div><div class="lbl">Lịch đã hủy</div></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="highlight-card h-100"><div class="lbl"><i class="bi bi-cash-coin me-1"></i>Doanh thu dịch vụ năm @Model.Nam</div><div class="val">@Model.DoanhThuNam.DinhDangTien()</div></div></div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-xl-8">
+        <div class="card-soft h-100">
+            <div class="card-head"><h6>Doanh thu dịch vụ theo tháng</h6><a asp-action="Index" class="small">Xem thống kê chi tiết <i class="bi bi-arrow-right"></i></a></div>
+            <div class="card-body"><div class="chart-box"><canvas id="bieuDoDoanhThu" aria-label="Biểu đồ doanh thu theo tháng" role="img"></canvas></div></div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="card-soft h-100">
+            <div class="card-head"><h6>Cơ cấu trạng thái lịch khám</h6><span class="small text-muted">@tongLich lịch</span></div>
+            <div class="card-body"><div class="chart-box" style="height:250px"><canvas id="bieuDoTrangThai" aria-label="Biểu đồ trạng thái lịch khám" role="img"></canvas></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-5">
+        <div class="card-soft h-100">
+            <div class="card-head"><h6>Số bệnh nhân theo tháng</h6></div>
+            <div class="card-body"><div class="chart-box" style="height:250px"><canvas id="bieuDoBenhNhan" aria-label="Biểu đồ số bệnh nhân theo tháng" role="img"></canvas></div></div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card-soft h-100">
+            <div class="card-head"><h6>Bác sĩ nhiều lịch nhất</h6></div>
+            <div class="card-body py-2">
+                <ul class="rank-list">
+                    @{ int hang = 0; }
+                    @foreach (var b in Model.BacSiNhieuLichNhat)
+                    {
+                        <li>
+                            <span class="rk">@(++hang)</span>
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="d-flex justify-content-between small"><span class="fw-semibold text-truncate">@b.Ten</span><span class="fw-bold">@b.SoLuong</span></div>
+                                <div class="progress progress-thin mt-1"><div class="progress-bar" style="width:@(b.SoLuong * 100 / maxLich)%;background:var(--pk-primary)"></div></div>
+                                <div class="text-muted" style="font-size:.72rem">@b.PhuDe</div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-6">
+        <div class="card-soft h-100">
+            <div class="card-head"><h6>Lịch chờ xác nhận</h6><a asp-controller="TiepNhan" asp-action="Index" asp-route-trangThai="ChoXacNhan" asp-route-sapXep="ngay" class="small">Xử lý <i class="bi bi-arrow-right"></i></a></div>
+            <div class="card-body py-2">
+                @if (!Model.LichChoXuLy.Any()) { <div class="empty-state py-4"><i class="bi bi-check2-all"></i>Không có lịch chờ xác nhận.</div> }
+                <ul class="rank-list">
+                    @foreach (var l in Model.LichChoXuLy)
+                    {
+                        <li>
+                            <div class="appt-date" style="width:46px;padding:.2rem 0"><div class="d" style="font-size:1rem">@l.NgayKham.Day.ToString("00")</div><div class="m" style="font-size:.6rem">Th@(l.NgayKham.Month)</div></div>
+                            <div class="small flex-grow-1 min-w-0"><div class="fw-semibold text-truncate">@l.BenhNhan?.HoTen</div><div class="text-muted text-truncate">@l.GioBatDau.ToString(@"hh\:mm") · BS @l.BacSi?.HoTen</div></div>
+                            <a asp-controller="TiepNhan" asp-action="ChiTiet" asp-route-id="@l.MaLichKham" class="btn btn-icon btn-light-border"><i class="bi bi-chevron-right"></i></a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ChartConfig" />
+    <script>
+        const doanhThu = @Html.Raw(JsonSerializer.Serialize(Model.DoanhThuTheoThang));
+        const benhNhan = @Html.Raw(JsonSerializer.Serialize(Model.BenhNhanTheoThang));
+
+        // Một chuỗi số liệu -> một màu thương hiệu, không cần chú giải
+        new Chart(document.getElementById('bieuDoDoanhThu'), {
+            type: 'bar',
+            data: { labels: pkThang, datasets: [{ label: 'Doanh thu', data: doanhThu, backgroundColor: '#1d5fe6', hoverBackgroundColor: '#1650c7', borderRadius: 4, maxBarThickness: 34 }] },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => 'Doanh thu: ' + pkTien(c.parsed.y) } } },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: pkLuoi, border: { display: false }, ticks: { callback: v => pkTienGon(v) } } }
+            }
+        });
+
+        new Chart(document.getElementById('bieuDoBenhNhan'), {
+            type: 'line',
+            data: { labels: pkThang, datasets: [{ label: 'Số bệnh nhân', data: benhNhan, borderColor: '#13a089', backgroundColor: 'rgba(19,160,137,.10)', fill: true, cubicInterpolationMode: 'monotone', borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#fff', pointBorderWidth: 2 }] },
+            options: {
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y + ' bệnh nhân' } } },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: pkLuoi, border: { display: false }, ticks: { precision: 0 } } }
+            }
+        });
+
+        // Trạng thái: dùng màu trạng thái + chú giải có nhãn
+        new Chart(document.getElementById('bieuDoTrangThai'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Chờ xác nhận', 'Đã xác nhận', 'Đã khám', 'Đã hủy'],
+                datasets: [{ data: [@Model.SoLichChoXacNhan, @Model.SoLichDaXacNhan, @Model.SoLichDaKham, @Model.SoLichDaHuy], backgroundColor: ['#f59e0b', '#1d5fe6', '#16a34a', '#e11d48'], borderColor: '#fff', borderWidth: 2 }]
+            },
+            options: {
+                maintainAspectRatio: false, cutout: '64%',
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 14, generateLabels: ch => ch.data.labels.map((l, i) => ({ text: l + ' (' + ch.data.datasets[0].data[i] + ')', fillStyle: ch.data.datasets[0].backgroundColor[i], strokeStyle: '#fff', pointStyle: 'circle', index: i })) } } }
+            }
+        });
+    </script>
+}
