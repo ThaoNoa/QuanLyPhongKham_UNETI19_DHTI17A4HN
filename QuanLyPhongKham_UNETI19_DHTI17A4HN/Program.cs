@@ -1,14 +1,18 @@
 // Họ và tên: Trần Phương Thảo (Nhóm trưởng)
 // Mã sinh viên: 23103100226
-// Nội dung thực hiện: Cấu hình ứng dụng - đăng ký DbContext (SQL Server), route, thông báo lỗi tiếng Việt,
-// định dạng vi-VN, tự động áp dụng Migration và tạo dữ liệu mẫu khi chạy lần đầu.
+// Nội dung thực hiện: Cấu hình ứng dụng - đăng ký DbContext (SQL Server), service nghiệp vụ, route,
+// tự động áp dụng Migration và tạo dữ liệu mẫu khi chạy lần đầu.
 // Họ và tên: Trần Hoài Nam
 // Mã sinh viên: 23103100240
 // Nội dung thực hiện: Cấu hình Session phục vụ đăng nhập, phân quyền.
+// Họ và tên: Trần Anh Đức
+// Mã sinh viên: 23103100284
+// Nội dung thực hiện: Đăng ký lớp nghiệp vụ LichKhamService.
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using QuanLyPhongKham_UNETI19_DHTI17A4HN.Data;
+using QuanLyPhongKham_UNETI19_DHTI17A4HN.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +35,9 @@ builder.Services.AddControllersWithViews(options =>
 // Entity Framework Core 10 + SQL Server
 builder.Services.AddDbContext<PhongKhamDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("PhongKhamConnection")));
+
+// Lớp xử lý nghiệp vụ lịch khám
+builder.Services.AddScoped<LichKhamService>();
 
 // Session: lưu Mã tài khoản, Họ tên, Vai trò sau khi đăng nhập
 builder.Services.AddDistributedMemoryCache();

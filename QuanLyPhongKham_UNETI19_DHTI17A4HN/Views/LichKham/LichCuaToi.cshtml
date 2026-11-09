@@ -1,0 +1,61 @@
+@* Họ và tên: Trần Anh Đức - Mã sinh viên: 23103100284
+   Nội dung thực hiện: Trang theo dõi lịch khám của bệnh nhân - lọc theo trạng thái, phân trang, xem kết quả. *@
+@model LichCuaToiViewModel
+@{
+    ViewData["Title"] = "Lịch khám của tôi";
+    int tong = Model.ThongKe.Values.Sum();
+}
+<section class="page-hero">
+    <div class="container">
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li><li class="breadcrumb-item active">Tra cứu lịch khám</li></ol></nav>
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-2">
+            <div><h1>Lịch khám của tôi</h1><p class="text-muted mb-0">Theo dõi trạng thái và kết quả các lịch khám đã đặt.</p></div>
+            <a asp-action="DatLich" class="btn btn-primary"><i class="bi bi-calendar-plus me-1"></i>Đặt lịch mới</a>
+        </div>
+    </div>
+</section>
+<section class="section">
+    <div class="container">
+        <div class="status-tabs mb-3">
+            <a asp-action="LichCuaToi" class="@(Model.TrangThai == null ? "active" : "")">Tất cả<span class="n">@tong</span></a>
+            @foreach (TrangThaiLichKham t in Enum.GetValues<TrangThaiLichKham>())
+            {
+                <a asp-action="LichCuaToi" asp-route-trangThai="@t" class="@(Model.TrangThai == t ? "active" : "")">@t.TenHienThi()<span class="n">@Model.ThongKe.GetValueOrDefault(t)</span></a>
+            }
+        </div>
+
+        @if (!Model.DanhSach.Any())
+        {
+            <div class="card-soft empty-state"><i class="bi bi-calendar-x"></i>Chưa có lịch khám nào. <a asp-action="DatLich">Đặt lịch ngay</a></div>
+        }
+        <div class="d-flex flex-column gap-3">
+            @foreach (var l in Model.DanhSach)
+            {
+                <div class="appt-card flex-wrap">
+                    <div class="appt-date"><div class="d">@l.NgayKham.Day.ToString("00")</div><div class="m">Th @l.NgayKham.Month/@l.NgayKham.Year</div></div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                            <span class="fw-bold">@l.BacSi?.HocVi.TenVietTat() @l.BacSi?.HoTen</span>
+                            <span class="@l.TrangThai.CssTrangThai()">@l.TrangThai.TenHienThi()</span>
+                        </div>
+                        <div class="small text-muted">
+                            <i class="bi bi-hospital me-1"></i>@l.BacSi?.ChuyenKhoa?.TenChuyenKhoa · Phòng @l.BacSi?.ChuyenKhoa?.SoPhong
+                            <span class="mx-2">|</span><i class="bi bi-clock me-1"></i>@GiaoDienHelper.TenThu(l.NgayKham), @l.GioBatDau.ToString(@"hh\:mm") - @l.GioKetThuc.ToString(@"hh\:mm")
+                        </div>
+                        <div class="small mt-1 text-truncate"><span class="text-muted">Lý do:</span> @l.LyDoKham</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        @if (l.KetQuaKham != null)
+                        {
+                            <a asp-controller="KetQuaKham" asp-action="Details" asp-route-id="@l.KetQuaKham.MaKetQua" class="btn btn-teal btn-sm"><i class="bi bi-clipboard2-pulse me-1"></i>Xem kết quả</a>
+                        }
+                        <a asp-action="ChiTiet" asp-route-id="@l.MaLichKham" class="btn btn-light-border btn-sm">Chi tiết</a>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="d-flex justify-content-center mt-4">
+            <partial name="_PhanTrang" model="@(new PhanTrangViewModel { TrangHienTai = Model.DanhSach.TrangHienTai, TongSoTrang = Model.DanhSach.TongSoTrang, Action = "LichCuaToi", ThamSo = new() { ["trangThai"] = Model.TrangThai?.ToString() } })" />
+        </div>
+    </div>
+</section>

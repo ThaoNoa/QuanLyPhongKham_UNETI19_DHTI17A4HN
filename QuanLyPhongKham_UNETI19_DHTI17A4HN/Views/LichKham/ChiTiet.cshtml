@@ -1,0 +1,66 @@
+@* Họ và tên: Trần Anh Đức - Mã sinh viên: 23103100284
+   Nội dung thực hiện: Chi tiết lịch khám của bệnh nhân - theo dõi trạng thái, hủy lịch khi còn chờ xác nhận, xem kết quả. *@
+@model LichKham
+@{
+    ViewData["Title"] = "Chi tiết lịch khám";
+}
+<section class="page-hero">
+    <div class="container">
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li><li class="breadcrumb-item"><a asp-action="LichCuaToi">Lịch khám của tôi</a></li><li class="breadcrumb-item active">LK@(Model.MaLichKham.ToString("00000"))</li></ol></nav>
+        <div class="d-flex align-items-center gap-3 flex-wrap"><h1 class="mb-0">Lịch khám #LK@(Model.MaLichKham.ToString("00000"))</h1><span class="@Model.TrangThai.CssTrangThai()">@Model.TrangThai.TenHienThi()</span></div>
+    </div>
+</section>
+<section class="section">
+    <div class="container" style="max-width:980px">
+        <div class="card-soft p-4 mb-3"><partial name="_TienTrinh" model="Model.TrangThai" /></div>
+        <div class="row g-3">
+            <div class="col-md-7">
+                <div class="card-soft h-100">
+                    <div class="card-head"><h6>Thông tin lịch hẹn</h6></div>
+                    <div class="card-body">
+                        <dl class="info-list" style="grid-template-columns:130px 1fr">
+                            <dt>Ngày khám</dt><dd>@GiaoDienHelper.TenThu(Model.NgayKham), @Model.NgayKham.ToString("dd/MM/yyyy")</dd>
+                            <dt>Thời gian</dt><dd>@Model.GioBatDau.ToString(@"hh\:mm") - @Model.GioKetThuc.ToString(@"hh\:mm")</dd>
+                            <dt>Chuyên khoa</dt><dd>@Model.BacSi?.ChuyenKhoa?.TenChuyenKhoa (Phòng @Model.BacSi?.ChuyenKhoa?.SoPhong)</dd>
+                            <dt>Bệnh nhân</dt><dd>@Model.BenhNhan?.HoTen</dd>
+                            <dt>Lý do khám</dt><dd>@Model.LyDoKham</dd>
+                            <dt>Ghi chú</dt><dd>@(Model.GhiChu ?? "—")</dd>
+                            <dt>Ngày đặt</dt><dd>@Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="card-soft p-4 mb-3">
+                    <div class="doctor-pick">
+                        @if (Model.BacSi != null) { <partial name="_AnhBacSi" model="Model.BacSi" /> }
+                        <div><div class="small text-muted">Bác sĩ khám</div><div class="fw-bold">@Model.BacSi?.HocVi.TenVietTat() @Model.BacSi?.HoTen</div><div class="small text-muted">@Model.BacSi?.ChuyenMon</div></div>
+                    </div>
+                </div>
+                <div class="card-soft p-4">
+                    @if (Model.KetQuaKham != null)
+                    {
+                        <p class="small text-muted">Bác sĩ đã cập nhật kết quả khám cho lịch này.</p>
+                        <a asp-controller="KetQuaKham" asp-action="Details" asp-route-id="@Model.KetQuaKham.MaKetQua" class="btn btn-teal w-100"><i class="bi bi-clipboard2-pulse me-1"></i>Xem kết quả khám</a>
+                    }
+                    else if (Model.TrangThai == TrangThaiLichKham.ChoXacNhan)
+                    {
+                        <p class="small text-muted">Lịch đang chờ phòng khám xác nhận. Bạn có thể hủy nếu không thể đến khám.</p>
+                        <button type="button" class="btn btn-outline-danger w-100"
+                                data-confirm-url="@Url.Action("HuyLich", new { id = Model.MaLichKham })" data-confirm-title="Hủy lịch khám"
+                                data-confirm-text="Bạn chắc chắn muốn hủy lịch khám ngày @Model.NgayKham.ToString("dd/MM/yyyy")?" data-confirm-reason="true" data-confirm-btn="Hủy lịch"><i class="bi bi-x-circle me-1"></i>Hủy lịch khám</button>
+                    }
+                    else if (Model.TrangThai == TrangThaiLichKham.DaXacNhan)
+                    {
+                        <p class="small mb-0"><i class="bi bi-info-circle text-primary me-1"></i>Lịch đã được xác nhận. Vui lòng đến trước giờ hẹn 15 phút và mang theo thẻ BHYT (nếu có).</p>
+                    }
+                    else
+                    {
+                        <p class="small text-muted mb-0">Lịch khám không còn thao tác nào.</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <a asp-action="LichCuaToi" class="btn btn-light-border mt-3"><i class="bi bi-arrow-left me-1"></i>Quay lại danh sách</a>
+    </div>
+</section>
