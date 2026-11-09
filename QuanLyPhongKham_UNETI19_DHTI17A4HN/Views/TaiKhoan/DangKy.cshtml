@@ -1,0 +1,69 @@
+@* Họ và tên: Trần Hoài Nam - Mã sinh viên: 23103100240
+   Nội dung thực hiện: Giao diện đăng ký tài khoản bệnh nhân (tạo đồng thời tài khoản và hồ sơ bệnh nhân). *@
+@model DangKyViewModel
+@{
+    ViewData["Title"] = "Đăng ký tài khoản";
+}
+<div class="auth-wrap">
+    <div class="auth-side">
+        <div style="max-width:460px;position:relative;z-index:1">
+            <h2>Tạo tài khoản để đặt lịch khám chỉ với 3 bước</h2>
+            <div class="feat"><i class="bi bi-1-circle"></i><div><strong class="text-white d-block">Chọn chuyên khoa</strong>Tìm chuyên khoa phù hợp với nhu cầu của bạn.</div></div>
+            <div class="feat"><i class="bi bi-2-circle"></i><div><strong class="text-white d-block">Chọn bác sĩ &amp; thời gian</strong>Xem lịch trống và chọn khung giờ.</div></div>
+            <div class="feat"><i class="bi bi-3-circle"></i><div><strong class="text-white d-block">Xác nhận và hoàn tất</strong>Phòng khám xác nhận và bạn theo dõi ngay trên web.</div></div>
+        </div>
+    </div>
+    <div class="auth-form">
+        <div class="auth-card" style="max-width:520px">
+            <h3 class="mb-1">Đăng ký tài khoản</h3>
+            <p class="text-muted mb-4">Thông tin sẽ được dùng làm hồ sơ bệnh nhân của bạn</p>
+            <form asp-action="DangKy" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label asp-for="HoTen" class="form-label required"></label>
+                        <input asp-for="HoTen" class="form-control" placeholder="VD: Nguyễn Văn An" />
+                        <span asp-validation-for="HoTen"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="NgaySinh" class="form-label required"></label>
+                        <input asp-for="NgaySinh" type="date" class="form-control" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        <span asp-validation-for="NgaySinh"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="GioiTinh" class="form-label required"></label>
+                        <select asp-for="GioiTinh" class="form-select"><option>Nam</option><option>Nữ</option></select>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="SoDienThoai" class="form-label required"></label>
+                        <input asp-for="SoDienThoai" class="form-control" placeholder="09xxxxxxxx" />
+                        <span asp-validation-for="SoDienThoai"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="Email" class="form-label required"></label>
+                        <input asp-for="Email" class="form-control" placeholder="ban@gmail.com" />
+                        <span asp-validation-for="Email"></span>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="TenDangNhap" class="form-label required"></label>
+                        <input asp-for="TenDangNhap" class="form-control" placeholder="Tên dùng để đăng nhập" />
+                        <span asp-validation-for="TenDangNhap"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="MatKhau" class="form-label required"></label>
+                        <input asp-for="MatKhau" class="form-control" />
+                        <span asp-validation-for="MatKhau"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="XacNhanMatKhau" class="form-label required"></label>
+                        <input asp-for="XacNhanMatKhau" class="form-control" />
+                        <span asp-validation-for="XacNhanMatKhau"></span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 btn-lg mt-4">Tạo tài khoản</button>
+            </form>
+            <p class="text-center mt-3 small">Đã có tài khoản? <a asp-action="DangNhap" class="fw-semibold">Đăng nhập</a></p>
+        </div>
+    </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
