@@ -1,6 +1,6 @@
 @* Họ và tên: Trần Phương Thảo - Mã sinh viên: 23103100226
    Nội dung thực hiện: Form nhập/sửa kết quả khám - textarea cho chẩn đoán, kết luận, đơn thuốc, lời dặn, ghi chú;
-   chọn dịch vụ y tế đã sử dụng và tự tính tổng tiền. *@
+   chọn dịch vụ y tế đã sử dụng và tự tính tổng tiền; hiển thị thông báo lỗi số lượng dịch vụ. *@
 @model KetQuaKhamFormViewModel
 @{
     bool laSua = Model.MaKetQua > 0;
@@ -69,7 +69,7 @@
                     @for (int i = 0; i < Model.DichVus.Count; i++)
                     {
                         var dv = Model.DichVus[i];
-                        <div class="d-flex align-items-center gap-2 py-2 border-bottom dv-row" data-gia="@dv.DonGia.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                        <div class="d-flex flex-wrap align-items-center gap-2 py-2 border-bottom dv-row" data-gia="@dv.DonGia.ToString(System.Globalization.CultureInfo.InvariantCulture)">
                             <input type="hidden" asp-for="DichVus[i].MaDichVu" />
                             <input type="hidden" asp-for="DichVus[i].TenDichVu" />
                             <input type="hidden" asp-for="DichVus[i].DonViTinh" />
@@ -79,6 +79,7 @@
                                 <label class="form-check-label small" for="DichVus_@(i)__DaChon"><span class="fw-semibold">@dv.TenDichVu</span><br /><span class="text-muted">@dv.DonGia.DinhDangTien() / @dv.DonViTinh</span></label>
                             </div>
                             <input asp-for="DichVus[i].SoLuong" type="number" min="1" max="100" class="form-control form-control-sm dv-sl" style="width:64px;padding:.3rem .4rem" />
+                            <span asp-validation-for="DichVus[i].SoLuong" class="w-100 text-end small"></span>
                         </div>
                     }
                 </div>
