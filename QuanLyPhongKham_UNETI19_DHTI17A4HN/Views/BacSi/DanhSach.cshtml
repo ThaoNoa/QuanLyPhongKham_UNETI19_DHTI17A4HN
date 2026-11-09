@@ -1,0 +1,56 @@
+@* Họ và tên: Lê Quang Trung - Mã sinh viên: 23103100270
+   Nội dung thực hiện: Trang tìm bác sĩ công khai - tìm kiếm, lọc chuyên khoa, sắp xếp, phân trang giữ điều kiện. *@
+@model BacSiIndexViewModel
+@{
+    ViewData["Title"] = "Tìm bác sĩ";
+}
+<section class="page-hero">
+    <div class="container">
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li><li class="breadcrumb-item active">Bác sĩ</li></ol></nav>
+        <h1>Đội ngũ bác sĩ</h1>
+        <p class="text-muted mb-0">Tìm bác sĩ theo tên, chuyên môn hoặc chuyên khoa và đặt lịch khám ngay.</p>
+        <form method="get" class="search-panel mt-3">
+            <div class="row g-2">
+                <div class="col-lg-5"><div class="input-icon"><i class="bi bi-search"></i><input name="tuKhoa" value="@Model.TuKhoa" class="form-control" placeholder="Tên bác sĩ, chuyên môn..." /></div></div>
+                <div class="col-md-4 col-lg-3"><div class="input-icon"><i class="bi bi-hospital"></i><select name="maChuyenKhoa" asp-items="Model.ChuyenKhoas" class="form-select"><option value="">Tất cả chuyên khoa</option></select></div></div>
+                <div class="col-md-4 col-lg-2">
+                    <select name="sapXep" class="form-select">
+                        <option value="">Tên A → Z</option>
+                        <option value="ten_desc" selected="@(Model.SapXep == "ten_desc")">Tên Z → A</option>
+                        <option value="hocvi_desc" selected="@(Model.SapXep == "hocvi_desc")">Học vị cao nhất</option>
+                        <option value="hocvi" selected="@(Model.SapXep == "hocvi")">Học vị thấp → cao</option>
+                    </select>
+                </div>
+                <div class="col-md-4 col-lg-2"><button class="btn btn-teal w-100"><i class="bi bi-search me-1"></i>Tìm kiếm</button></div>
+            </div>
+        </form>
+    </div>
+</section>
+<section class="section">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="text-muted">Tìm thấy <strong class="text-dark">@Model.DanhSach.TongSoBanGhi</strong> bác sĩ
+                @if (!string.IsNullOrEmpty(Model.TuKhoa)) { <span>cho “<strong class="text-dark">@Model.TuKhoa</strong>”</span> }
+            </div>
+            @if (!string.IsNullOrEmpty(Model.TuKhoa) || Model.MaChuyenKhoa.HasValue)
+            {
+                <a asp-action="DanhSach" class="small"><i class="bi bi-x-circle me-1"></i>Xóa bộ lọc</a>
+            }
+        </div>
+        @if (!Model.DanhSach.Any())
+        {
+            <div class="card-soft empty-state"><i class="bi bi-search"></i>Không tìm thấy bác sĩ phù hợp. Hãy thử từ khóa khác.</div>
+        }
+        <div class="row g-3">
+            @foreach (var b in Model.DanhSach)
+            {
+                <div class="col-md-6 col-xl-3">
+                    <partial name="_TheBacSi" model="b" view-data='new ViewDataDictionary(ViewData) { ["SoLuot"] = Model.SoLuotKham.GetValueOrDefault(b.MaBacSi) }' />
+                </div>
+            }
+        </div>
+        <div class="d-flex justify-content-center mt-4">
+            <partial name="_PhanTrang" model="@(new PhanTrangViewModel { TrangHienTai = Model.DanhSach.TrangHienTai, TongSoTrang = Model.DanhSach.TongSoTrang, Action = "DanhSach", ThamSo = Model.ThamSo() })" />
+        </div>
+    </div>
+</section>

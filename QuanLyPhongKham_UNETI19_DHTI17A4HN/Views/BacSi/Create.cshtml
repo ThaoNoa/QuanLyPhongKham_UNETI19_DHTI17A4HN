@@ -1,0 +1,9 @@
+@* Họ và tên: Lê Quang Trung - Mã sinh viên: 23103100270
+   Nội dung thực hiện: Trang thêm bác sĩ. *@
+@model BacSiFormViewModel
+@{
+    ViewData["Title"] = "Thêm bác sĩ";
+    Layout = "_AdminLayout";
+}
+<div class="card-soft"><div class="card-body"><partial name="_Form" model="Model" /></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

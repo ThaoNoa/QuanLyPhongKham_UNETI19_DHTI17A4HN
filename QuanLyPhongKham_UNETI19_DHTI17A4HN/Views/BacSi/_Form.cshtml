@@ -1,0 +1,99 @@
+@* Họ và tên: Lê Quang Trung - Mã sinh viên: 23103100270
+   Nội dung thực hiện: Form thêm/sửa bác sĩ - chọn chuyên khoa từ CSDL, ngày sinh type="date", upload ảnh, gán tài khoản. *@
+@model BacSiFormViewModel
+@{ bool laSua = Model.BacSi.MaBacSi > 0; }
+<form asp-action="@(laSua ? "Edit" : "Create")" method="post" enctype="multipart/form-data" novalidate>
+    <input type="hidden" asp-for="BacSi.MaBacSi" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+    <div class="row g-4">
+        <div class="col-lg-3 text-center">
+            @if (!string.IsNullOrEmpty(Model.BacSi.HinhAnh))
+            {
+                <img id="anhXemTruoc" src="@Model.BacSi.HinhAnh" class="upload-preview mb-2" alt="Ảnh bác sĩ" />
+            }
+            else
+            {
+                <img id="anhXemTruoc" class="upload-preview mb-2 d-none" alt="Ảnh bác sĩ" />
+                <div class="upload-preview d-flex align-items-center justify-content-center mx-auto mb-2 text-muted" id="khungAnhTrong"><i class="bi bi-person-bounding-box fs-1"></i></div>
+            }
+            <label class="btn btn-soft btn-sm w-100 mt-1">
+                <i class="bi bi-upload me-1"></i>Chọn ảnh
+                <input asp-for="AnhDaiDien" type="file" accept=".jpg,.jpeg,.png,.webp" class="d-none" data-preview="#anhXemTruoc" onchange="document.getElementById('khungAnhTrong')?.remove()" />
+            </label>
+            <div class="form-text">JPG, PNG, WEBP · tối đa 2MB</div>
+            <span asp-validation-for="AnhDaiDien"></span>
+        </div>
+        <div class="col-lg-9">
+            <h6 class="form-section"><i class="bi bi-person-vcard"></i>Thông tin cá nhân</h6>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="BacSi.HoTen" class="form-label required"></label>
+                    <input asp-for="BacSi.HoTen" class="form-control" placeholder="VD: Nguyễn Văn Minh" />
+                    <span asp-validation-for="BacSi.HoTen"></span>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="BacSi.NgaySinh" class="form-label required"></label>
+                    <input asp-for="BacSi.NgaySinh" type="date" class="form-control" />
+                    <span asp-validation-for="BacSi.NgaySinh"></span>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="BacSi.GioiTinh" class="form-label required"></label>
+                    <select asp-for="BacSi.GioiTinh" class="form-select"><option>Nam</option><option>Nữ</option></select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="BacSi.SoDienThoai" class="form-label required"></label>
+                    <input asp-for="BacSi.SoDienThoai" class="form-control" placeholder="09xxxxxxxx" />
+                    <span asp-validation-for="BacSi.SoDienThoai"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="BacSi.Email" class="form-label required"></label>
+                    <input asp-for="BacSi.Email" class="form-control" />
+                    <span asp-validation-for="BacSi.Email"></span>
+                </div>
+            </div>
+
+            <h6 class="form-section mt-4"><i class="bi bi-hospital"></i>Chuyên môn</h6>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="BacSi.MaChuyenKhoa" class="form-label required"></label>
+                    <select asp-for="BacSi.MaChuyenKhoa" asp-items="Model.ChuyenKhoas" class="form-select"><option value="">-- Chọn chuyên khoa --</option></select>
+                    <span asp-validation-for="BacSi.MaChuyenKhoa"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="BacSi.HocVi" class="form-label required"></label>
+                    <select asp-for="BacSi.HocVi" class="form-select">
+                        @foreach (HocVi h in Enum.GetValues<HocVi>())
+                        {
+                            <option value="@h" selected="@(Model.BacSi.HocVi == h)">@h.TenHienThi()</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label asp-for="BacSi.ChuyenMon" class="form-label required"></label>
+                    <input asp-for="BacSi.ChuyenMon" class="form-control" placeholder="VD: Tim mạch, tăng huyết áp" />
+                    <span asp-validation-for="BacSi.ChuyenMon"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="BacSi.MaTaiKhoan" class="form-label"></label>
+                    <select asp-for="BacSi.MaTaiKhoan" asp-items="Model.TaiKhoans" class="form-select"><option value="">-- Không gán tài khoản --</option></select>
+                    <div class="form-text">Gán tài khoản vai trò Bác sĩ để bác sĩ đăng nhập xem lịch và nhập kết quả.</div>
+                    <span asp-validation-for="BacSi.MaTaiKhoan"></span>
+                </div>
+                <div class="col-md-6 d-flex align-items-center">
+                    <div class="form-check form-switch">
+                        <input asp-for="BacSi.TrangThai" class="form-check-input" role="switch" />
+                        <label asp-for="BacSi.TrangThai" class="form-check-label">Đang hoạt động (được nhận lịch)</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label asp-for="BacSi.GhiChu" class="form-label"></label>
+                    <textarea asp-for="BacSi.GhiChu" rows="3" class="form-control"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-actions">
+        <a asp-action="Index" class="btn btn-light-border">Hủy</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>@(laSua ? "Lưu thay đổi" : "Thêm bác sĩ")</button>
+    </div>
+</form>
