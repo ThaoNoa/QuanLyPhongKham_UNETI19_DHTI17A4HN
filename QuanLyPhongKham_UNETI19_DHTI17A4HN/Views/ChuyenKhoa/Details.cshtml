@@ -1,0 +1,51 @@
+@* Họ và tên: Trần Hoài Nam - Mã sinh viên: 23103100240
+   Nội dung thực hiện: Trang chi tiết chuyên khoa và danh sách bác sĩ thuộc khoa. *@
+@model ChuyenKhoa
+@{
+    ViewData["Title"] = Model.TenChuyenKhoa;
+    ViewData["Subtitle"] = "Chi tiết chuyên khoa";
+    Layout = "_AdminLayout";
+    var gd = GiaoDienHelper.GiaoDienChuyenKhoa(Model.TenChuyenKhoa);
+}
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card-soft p-4 h-100">
+            <span class="specialty-icon @gd.Tone mb-3" style="width:64px;height:64px;margin:0"><partial name="_IconChuyenKhoa" model="gd.Icon" /></span>
+            <h4 class="fw-bold">@Model.TenChuyenKhoa</h4>
+            <p class="text-muted">@Model.MoTa</p>
+            <dl class="info-list" style="grid-template-columns:110px 1fr">
+                <dt>Mã</dt><dd>#@Model.MaChuyenKhoa</dd>
+                <dt>Số phòng</dt><dd>@Model.SoPhong</dd>
+                <dt>Trạng thái</dt><dd>@if (Model.TrangThai) { <span class="status status-active">Hoạt động</span> } else { <span class="status status-inactive">Ngừng</span> }</dd>
+            </dl>
+            <div class="form-actions">
+                <a asp-action="Index" class="btn btn-light-border">Quay lại</a>
+                <a asp-action="Edit" asp-route-id="@Model.MaChuyenKhoa" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>Sửa</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card-soft h-100">
+            <div class="card-head"><h6>Bác sĩ thuộc khoa (@Model.BacSis.Count)</h6></div>
+            <div class="table-responsive">
+                <table class="table table-modern">
+                    <thead><tr><th>Bác sĩ</th><th>Chuyên môn</th><th>Trạng thái</th></tr></thead>
+                    <tbody>
+                        @foreach (var b in Model.BacSis.OrderBy(b => b.HoTen))
+                        {
+                            <tr>
+                                <td><div class="person"><partial name="_AnhBacSi" model="b" /><div><a asp-controller="BacSi" asp-action="Details" asp-route-id="@b.MaBacSi" class="fw-semibold">@b.HocVi.TenVietTat() @b.HoTen</a></div></div></td>
+                                <td class="text-muted">@b.ChuyenMon</td>
+                                <td>@if (b.TrangThai) { <span class="status status-active">Hoạt động</span> } else { <span class="status status-inactive">Tạm ngừng</span> }</td>
+                            </tr>
+                        }
+                        @if (!Model.BacSis.Any())
+                        {
+                            <tr><td colspan="3"><div class="empty-state py-4">Chưa có bác sĩ.</div></td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

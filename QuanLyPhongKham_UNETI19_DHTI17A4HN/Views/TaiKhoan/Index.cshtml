@@ -1,0 +1,111 @@
+@* Họ và tên: Trần Hoài Nam - Mã sinh viên: 23103100240
+   Nội dung thực hiện: Danh sách tài khoản - tìm kiếm, lọc vai trò/trạng thái, sắp xếp, phân trang, khóa/mở khóa. *@
+@model TaiKhoanIndexViewModel
+@{
+    ViewData["Title"] = "Quản lý tài khoản";
+    ViewData["Subtitle"] = "Tài khoản đăng nhập và phân quyền người dùng";
+    Layout = "_AdminLayout";
+    int maDangNhap = Context.Session.LayMaTaiKhoan() ?? 0;
+    var thamSo = new Dictionary<string, string?>
+    {
+        ["tuKhoa"] = Model.TuKhoa, ["vaiTro"] = Model.VaiTro?.ToString(),
+        ["trangThai"] = Model.TrangThai?.ToString(), ["sapXep"] = Model.SapXep
+    };
+}
+<form method="get" class="filter-bar mb-3">
+    <div class="row g-2 align-items-center">
+        <div class="col-lg-4">
+            <div class="input-icon"><i class="bi bi-search"></i><input name="tuKhoa" value="@Model.TuKhoa" class="form-control" placeholder="Tìm tên đăng nhập, họ tên, email..." /></div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <select name="vaiTro" class="form-select" data-auto-submit>
+                <option value="">Tất cả vai trò</option>
+                @foreach (VaiTro v in Enum.GetValues<VaiTro>())
+                {
+                    <option value="@v" selected="@(Model.VaiTro == v)">@v.TenHienThi()</option>
+                }
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <select name="trangThai" class="form-select" data-auto-submit>
+                <option value="">Tất cả trạng thái</option>
+                <option value="true" selected="@(Model.TrangThai == true)">Hoạt động</option>
+                <option value="false" selected="@(Model.TrangThai == false)">Bị khóa</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <select name="sapXep" class="form-select" data-auto-submit>
+                <option value="">Mới nhất theo mã</option>
+                <option value="ten" selected="@(Model.SapXep == "ten")">Họ tên A → Z</option>
+                <option value="ten_desc" selected="@(Model.SapXep == "ten_desc")">Họ tên Z → A</option>
+                <option value="vaitro" selected="@(Model.SapXep == "vaitro")">Theo vai trò</option>
+                <option value="ngay_desc" selected="@(Model.SapXep == "ngay_desc")">Ngày tạo mới nhất</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-2 d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel"></i> Lọc</button>
+            <a asp-action="Index" class="btn btn-light-border" title="Xóa bộ lọc"><i class="bi bi-x-lg"></i></a>
+        </div>
+    </div>
+</form>
+
+<div class="card-soft">
+    <div class="card-head">
+        <h6>Danh sách tài khoản <span class="text-muted fw-normal">(@Model.DanhSach.TongSoBanGhi)</span></h6>
+        <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Thêm tài khoản</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-modern">
+            <thead>
+                <tr><th>#</th><th>Người dùng</th><th>Tên đăng nhập</th><th>Vai trò</th><th>Ngày tạo</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr>
+            </thead>
+            <tbody>
+                @if (!Model.DanhSach.Any())
+                {
+                    <tr><td colspan="7"><div class="empty-state"><i class="bi bi-person-x"></i>Không tìm thấy tài khoản phù hợp.</div></td></tr>
+                }
+                @{ int stt = Model.DanhSach.ChiSoBatDau; }
+                @foreach (var t in Model.DanhSach)
+                {
+                    <tr>
+                        <td class="text-muted">@(++stt)</td>
+                        <td>
+                            <div class="person">
+                                <span class="avatar-initial">@GiaoDienHelper.ChuCaiDau(t.HoTen)</span>
+                                <div><div class="fw-semibold">@t.HoTen</div><div class="sub">@t.Email</div></div>
+                            </div>
+                        </td>
+                        <td><code>@t.TenDangNhap</code></td>
+                        <td><span class="role-badge role-@t.VaiTro">@t.VaiTro.TenHienThi()</span></td>
+                        <td>@t.NgayTao.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            @if (t.TrangThai) { <span class="status status-active">Hoạt động</span> }
+                            else { <span class="status status-locked">Bị khóa</span> }
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <a asp-action="Details" asp-route-id="@t.MaTaiKhoan" class="btn btn-icon btn-light-border" title="Xem"><i class="bi bi-eye"></i></a>
+                                <a asp-action="Edit" asp-route-id="@t.MaTaiKhoan" class="btn btn-icon btn-light-border" title="Sửa"><i class="bi bi-pencil"></i></a>
+                                @if (t.MaTaiKhoan != maDangNhap)
+                                {
+                                    <form asp-action="KhoaMo" asp-route-id="@t.MaTaiKhoan" method="post" class="d-inline">
+                                        <button class="btn btn-icon btn-light-border" title="@(t.TrangThai ? "Khóa" : "Mở khóa")"><i class="bi @(t.TrangThai ? "bi-lock" : "bi-unlock")"></i></button>
+                                    </form>
+                                    <button type="button" class="btn btn-icon btn-light-border text-danger" title="Xóa"
+                                            data-confirm-url="@Url.Action("Delete", new { id = t.MaTaiKhoan })"
+                                            data-confirm-title="Xóa tài khoản"
+                                            data-confirm-text="Xóa tài khoản &quot;@t.TenDangNhap&quot;? Hồ sơ bệnh nhân/bác sĩ liên quan vẫn được giữ lại."
+                                            data-confirm-btn="Xóa"><i class="bi bi-trash"></i></button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span>Trang @Model.DanhSach.TrangHienTai / @Model.DanhSach.TongSoTrang · @Model.DanhSach.TongSoBanGhi tài khoản</span>
+        <partial name="_PhanTrang" model="@(new PhanTrangViewModel { TrangHienTai = Model.DanhSach.TrangHienTai, TongSoTrang = Model.DanhSach.TongSoTrang, ThamSo = thamSo })" />
+    </div>
+</div>

@@ -1,0 +1,39 @@
+@* Họ và tên: Trần Hoài Nam - Mã sinh viên: 23103100240
+   Nội dung thực hiện: Trang chuyên khoa công khai - bệnh nhân chọn chuyên khoa để xem bác sĩ và đặt lịch. *@
+@model List<ChuyenKhoaItemViewModel>
+@{
+    ViewData["Title"] = "Chuyên khoa";
+}
+<section class="page-hero">
+    <div class="container">
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li><li class="breadcrumb-item active">Chuyên khoa</li></ol></nav>
+        <h1>Chuyên khoa</h1>
+        <p class="text-muted mb-0">Đa dạng chuyên khoa, đáp ứng mọi nhu cầu khám chữa bệnh của bạn và gia đình.</p>
+    </div>
+</section>
+<section class="section">
+    <div class="container">
+        <div class="row g-3">
+            @foreach (var c in Model)
+            {
+                var gd = GiaoDienHelper.GiaoDienChuyenKhoa(c.TenChuyenKhoa);
+                <div class="col-md-6 col-lg-4">
+                    <div class="card-soft p-4 h-100 d-flex flex-column">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="specialty-icon @gd.Tone m-0"><partial name="_IconChuyenKhoa" model="gd.Icon" /></span>
+                            <div>
+                                <h5 class="fw-bold mb-0">@c.TenChuyenKhoa</h5>
+                                <div class="small text-muted"><i class="bi bi-door-open me-1"></i>Phòng @c.SoPhong · @c.SoBacSi bác sĩ</div>
+                            </div>
+                        </div>
+                        <p class="text-muted small flex-grow-1">@c.MoTa</p>
+                        <div class="d-flex gap-2">
+                            <a asp-controller="BacSi" asp-action="DanhSach" asp-route-maChuyenKhoa="@c.MaChuyenKhoa" class="btn btn-soft btn-sm flex-grow-1">Xem bác sĩ</a>
+                            <a asp-controller="LichKham" asp-action="DatLich" asp-route-maChuyenKhoa="@c.MaChuyenKhoa" class="btn btn-primary btn-sm flex-grow-1"><i class="bi bi-calendar-plus me-1"></i>Đặt lịch</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

@@ -1,0 +1,35 @@
+@* Họ và tên: Trần Hoài Nam - Mã sinh viên: 23103100240
+   Nội dung thực hiện: Form thêm/sửa chuyên khoa (validation tên bắt buộc, số phòng không âm). *@
+@model ChuyenKhoa
+@{ bool laSua = Model.MaChuyenKhoa > 0; }
+<form asp-action="@(laSua ? "Edit" : "Create")" method="post" novalidate>
+    <input type="hidden" asp-for="MaChuyenKhoa" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+    <div class="row g-3">
+        <div class="col-md-8">
+            <label asp-for="TenChuyenKhoa" class="form-label required"></label>
+            <input asp-for="TenChuyenKhoa" class="form-control" placeholder="VD: Nội khoa" />
+            <span asp-validation-for="TenChuyenKhoa"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="SoPhong" class="form-label required"></label>
+            <input asp-for="SoPhong" type="number" min="0" class="form-control" />
+            <span asp-validation-for="SoPhong"></span>
+        </div>
+        <div class="col-12">
+            <label asp-for="MoTa" class="form-label"></label>
+            <textarea asp-for="MoTa" rows="4" class="form-control" placeholder="Mô tả ngắn về chuyên khoa"></textarea>
+            <span asp-validation-for="MoTa"></span>
+        </div>
+        <div class="col-12">
+            <div class="form-check form-switch">
+                <input asp-for="TrangThai" class="form-check-input" role="switch" />
+                <label asp-for="TrangThai" class="form-check-label">Đang hoạt động</label>
+            </div>
+        </div>
+    </div>
+    <div class="form-actions">
+        <a asp-action="Index" class="btn btn-light-border">Hủy</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>@(laSua ? "Lưu thay đổi" : "Thêm chuyên khoa")</button>
+    </div>
+</form>

@@ -1,0 +1,47 @@
+@* Họ và tên: Trần Hoài Nam - Mã sinh viên: 23103100240
+   Nội dung thực hiện: Trang chi tiết tài khoản, hiển thị hồ sơ bác sĩ/bệnh nhân liên kết. *@
+@model TaiKhoan
+@{
+    ViewData["Title"] = "Chi tiết tài khoản";
+    ViewData["Subtitle"] = Model.TenDangNhap;
+    Layout = "_AdminLayout";
+}
+<div class="row g-3" style="max-width:1000px">
+    <div class="col-lg-4">
+        <div class="card-soft text-center p-4 h-100">
+            <span class="avatar-initial mx-auto mb-3" style="width:76px;height:76px;font-size:1.6rem">@GiaoDienHelper.ChuCaiDau(Model.HoTen)</span>
+            <h5 class="fw-bold mb-1">@Model.HoTen</h5>
+            <div class="mb-2"><span class="role-badge role-@Model.VaiTro">@Model.VaiTro.TenHienThi()</span></div>
+            @if (Model.TrangThai) { <span class="status status-active">Hoạt động</span> } else { <span class="status status-locked">Bị khóa</span> }
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card-soft h-100">
+            <div class="card-head"><h6>Thông tin tài khoản</h6></div>
+            <div class="card-body">
+                <dl class="info-list">
+                    <dt>Mã tài khoản</dt><dd>#@Model.MaTaiKhoan</dd>
+                    <dt>Tên đăng nhập</dt><dd><code>@Model.TenDangNhap</code></dd>
+                    <dt>Email</dt><dd>@Model.Email</dd>
+                    <dt>Ngày tạo</dt><dd>@Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</dd>
+                    <dt>Hồ sơ liên kết</dt>
+                    <dd>
+                        @if (Model.BacSi != null)
+                        {
+                            <a asp-controller="BacSi" asp-action="Details" asp-route-id="@Model.BacSi.MaBacSi">Bác sĩ @Model.BacSi.HoTen</a> <span class="text-muted">- @Model.BacSi.ChuyenKhoa?.TenChuyenKhoa</span>
+                        }
+                        else if (Model.BenhNhan != null)
+                        {
+                            <a asp-controller="BenhNhan" asp-action="Details" asp-route-id="@Model.BenhNhan.MaBenhNhan">Bệnh nhân @Model.BenhNhan.HoTen</a>
+                        }
+                        else { <span class="text-muted">Không có</span> }
+                    </dd>
+                </dl>
+                <div class="form-actions">
+                    <a asp-action="Index" class="btn btn-light-border">Quay lại</a>
+                    <a asp-action="Edit" asp-route-id="@Model.MaTaiKhoan" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>Sửa</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

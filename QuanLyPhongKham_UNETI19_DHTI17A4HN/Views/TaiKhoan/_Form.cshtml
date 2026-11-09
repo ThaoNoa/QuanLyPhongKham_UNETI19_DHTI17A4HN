@@ -1,0 +1,50 @@
+@* Họ và tên: Trần Hoài Nam - Mã sinh viên: 23103100240
+   Nội dung thực hiện: Form dùng chung cho thêm/sửa tài khoản. *@
+@model TaiKhoanFormViewModel
+@{ bool laSua = Model.MaTaiKhoan > 0; }
+<form asp-action="@(laSua ? "Edit" : "Create")" method="post" novalidate>
+    <input type="hidden" asp-for="MaTaiKhoan" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="HoTen" class="form-label required"></label>
+            <input asp-for="HoTen" class="form-control" />
+            <span asp-validation-for="HoTen"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Email" class="form-label required"></label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="TenDangNhap" class="form-label required"></label>
+            <input asp-for="TenDangNhap" class="form-control" />
+            <span asp-validation-for="TenDangNhap"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="MatKhau" class="form-label @(laSua ? "" : "required")"></label>
+            <input asp-for="MatKhau" class="form-control" placeholder="@(laSua ? "Để trống nếu giữ nguyên mật khẩu" : "Tối thiểu 6 ký tự")" />
+            <span asp-validation-for="MatKhau"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="VaiTro" class="form-label required"></label>
+            <select asp-for="VaiTro" class="form-select">
+                @foreach (VaiTro v in Enum.GetValues<VaiTro>())
+                {
+                    <option value="@v" selected="@(Model.VaiTro == v)">@v.TenHienThi()</option>
+                }
+            </select>
+            <div class="form-text">Tài khoản Bác sĩ cần được gán vào hồ sơ bác sĩ ở mục Quản lý bác sĩ.</div>
+        </div>
+        <div class="col-md-6 d-flex align-items-center">
+            <div class="form-check form-switch mt-3">
+                <input asp-for="TrangThai" class="form-check-input" role="switch" />
+                <label asp-for="TrangThai" class="form-check-label"></label>
+            </div>
+        </div>
+    </div>
+    <div class="form-actions">
+        <a asp-action="Index" class="btn btn-light-border">Hủy</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>@(laSua ? "Lưu thay đổi" : "Tạo tài khoản")</button>
+    </div>
+</form>

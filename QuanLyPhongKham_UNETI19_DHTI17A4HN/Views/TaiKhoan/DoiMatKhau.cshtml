@@ -1,0 +1,40 @@
+@* Họ và tên: Trần Hoài Nam - Mã sinh viên: 23103100240
+   Nội dung thực hiện: Giao diện đổi mật khẩu cho mọi vai trò. *@
+@model DoiMatKhauViewModel
+@{
+    ViewData["Title"] = "Đổi mật khẩu";
+    Layout = Context.Session.LayoutTheoVaiTro();
+    bool admin = Layout == "_AdminLayout";
+}
+<div class="@(admin ? "" : "container section")" style="max-width:520px">
+    @if (!admin)
+    {
+        <h3 class="fw-bold mb-3">Đổi mật khẩu</h3>
+    }
+    <div class="card-soft">
+        <div class="card-body">
+            <form asp-action="DoiMatKhau" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+                <div class="mb-3">
+                    <label asp-for="MatKhauCu" class="form-label required"></label>
+                    <input asp-for="MatKhauCu" class="form-control" />
+                    <span asp-validation-for="MatKhauCu"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="MatKhauMoi" class="form-label required"></label>
+                    <input asp-for="MatKhauMoi" class="form-control" />
+                    <span asp-validation-for="MatKhauMoi"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="XacNhanMatKhau" class="form-label required"></label>
+                    <input asp-for="XacNhanMatKhau" class="form-control" />
+                    <span asp-validation-for="XacNhanMatKhau"></span>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Lưu mật khẩu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
