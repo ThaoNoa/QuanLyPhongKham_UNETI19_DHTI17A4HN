@@ -1,0 +1,21 @@
+@* Họ và tên: Trần Phương Thảo - Mã sinh viên: 23103100226
+   Nội dung thực hiện: Script tính tổng tiền dịch vụ ngay trên trình duyệt khi chọn dịch vụ/số lượng. *@
+<script>
+    (function () {
+        const fmt = n => n.toLocaleString('vi-VN') + ' đ';
+        function tinh() {
+            let tong = 0;
+            document.querySelectorAll('.dv-row').forEach(r => {
+                const chon = r.querySelector('.dv-chon').checked;
+                const sl = parseInt(r.querySelector('.dv-sl').value) || 0;
+                r.querySelector('.dv-sl').disabled = false;
+                r.style.opacity = chon ? 1 : .75;
+                if (chon) tong += sl * parseFloat(r.dataset.gia);
+            });
+            document.getElementById('tongTien').textContent = fmt(tong);
+        }
+        document.querySelectorAll('.dv-chon, .dv-sl').forEach(e => e.addEventListener('input', tinh));
+        document.querySelectorAll('.dv-chon').forEach(e => e.addEventListener('change', tinh));
+        tinh();
+    })();
+</script>
