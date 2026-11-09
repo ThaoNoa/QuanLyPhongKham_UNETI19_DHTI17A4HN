@@ -1,0 +1,83 @@
+@* Họ và tên: Đỗ Huy Tùng - Mã sinh viên: 23103100296
+   Nội dung thực hiện: Lịch làm việc của bác sĩ theo ngày - ghi nhận Đã khám, chuyển sang nhập kết quả. *@
+@model LichBacSiViewModel
+@{
+    ViewData["Title"] = "Lịch làm việc";
+    ViewData["Subtitle"] = $"{Model.BacSi.HocVi.TenVietTat()} {Model.BacSi.HoTen} · {Model.BacSi.ChuyenKhoa?.TenChuyenKhoa}";
+    Layout = "_AdminLayout";
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+}
+<div class="row g-3 mb-3">
+    <div class="col-md-4"><div class="stat-card"><div class="ico tone-blue"><i class="bi bi-calendar-day"></i></div><div><div class="val">@Model.LichTrongNgay.Count</div><div class="lbl">Lịch trong ngày @Model.Ngay.ToString("dd/MM")</div></div></div></div>
+    <div class="col-md-4"><div class="stat-card"><div class="ico tone-teal"><i class="bi bi-calendar-week"></i></div><div><div class="val">@Model.LichSapToi.Count</div><div class="lbl">Lịch 7 ngày tới</div></div></div></div>
+    <div class="col-md-4"><a asp-controller="KetQuaKham" asp-action="Index" class="stat-card"><div class="ico tone-orange"><i class="bi bi-pencil-square"></i></div><div><div class="val">@Model.SoChuaNhapKetQua</div><div class="lbl">Đã khám, chưa nhập kết quả</div></div></a></div>
+</div>
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card-soft">
+            <div class="card-head">
+                <h6>@GiaoDienHelper.TenThu(Model.Ngay), @Model.Ngay.ToString("dd/MM/yyyy")</h6>
+                <form method="get" class="d-flex gap-2">
+                    <a asp-route-ngay="@Model.Ngay.AddDays(-1).ToString("yyyy-MM-dd")" class="btn btn-icon btn-light-border"><i class="bi bi-chevron-left"></i></a>
+                    <input type="date" name="ngay" value="@Model.Ngay.ToString("yyyy-MM-dd")" class="form-control form-control-sm" style="height:34px" data-auto-submit />
+                    <a asp-route-ngay="@Model.Ngay.AddDays(1).ToString("yyyy-MM-dd")" class="btn btn-icon btn-light-border"><i class="bi bi-chevron-right"></i></a>
+                    <a asp-route-ngay="" class="btn btn-sm btn-soft">Hôm nay</a>
+                </form>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-modern">
+                    <thead><tr><th>Giờ</th><th>Bệnh nhân</th><th>Lý do khám</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead>
+                    <tbody>
+                        @if (!Model.LichTrongNgay.Any())
+                        {
+                            <tr><td colspan="5"><div class="empty-state"><i class="bi bi-cup-hot"></i>Không có lịch khám trong ngày này.</div></td></tr>
+                        }
+                        @foreach (var l in Model.LichTrongNgay)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary">@l.GioBatDau.ToString(@"hh\:mm")<div class="sub fw-normal">đến @l.GioKetThuc.ToString(@"hh\:mm")</div></td>
+                                <td><div class="fw-semibold">@l.BenhNhan?.HoTen</div><div class="sub">@l.BenhNhan?.GioiTinh · @(l.BenhNhan != null ? DateTime.Today.Year - l.BenhNhan.NgaySinh.Year : 0) tuổi</div></td>
+                                <td class="text-muted" style="max-width:240px"><div class="text-truncate">@l.LyDoKham</div></td>
+                                <td><span class="@l.TrangThai.CssTrangThai()">@l.TrangThai.TenHienThi()</span></td>
+                                <td>
+                                    <div class="table-actions">
+                                        @if (l.TrangThai == TrangThaiLichKham.DaXacNhan && l.NgayKham <= DateTime.Today)
+                                        {
+                                            <form asp-action="DaKham" asp-route-id="@l.MaLichKham" method="post"><button class="btn btn-sm btn-teal"><i class="bi bi-clipboard2-check"></i> Đã khám</button></form>
+                                        }
+                                        else if (l.TrangThai == TrangThaiLichKham.DaKham && l.KetQuaKham == null)
+                                        {
+                                            <a asp-controller="KetQuaKham" asp-action="Create" asp-route-maLichKham="@l.MaLichKham" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square"></i> Nhập kết quả</a>
+                                        }
+                                        else if (l.KetQuaKham != null)
+                                        {
+                                            <a asp-controller="KetQuaKham" asp-action="Details" asp-route-id="@l.KetQuaKham.MaKetQua" class="btn btn-sm btn-soft">Kết quả</a>
+                                        }
+                                        <a asp-action="ChiTiet" asp-route-id="@l.MaLichKham" class="btn btn-icon btn-light-border"><i class="bi bi-eye"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card-soft">
+            <div class="card-head"><h6>7 ngày tiếp theo</h6></div>
+            <div class="card-body py-2">
+                @if (!Model.LichSapToi.Any()) { <div class="small text-muted py-2">Chưa có lịch sắp tới.</div> }
+                <ul class="rank-list">
+                    @foreach (var l in Model.LichSapToi)
+                    {
+                        <li>
+                            <div class="appt-date" style="width:48px;padding:.25rem 0"><div class="d" style="font-size:1.05rem">@l.NgayKham.Day.ToString("00")</div><div class="m" style="font-size:.62rem">Th@(l.NgayKham.Month)</div></div>
+                            <div class="small flex-grow-1"><div class="fw-semibold">@l.BenhNhan?.HoTen</div><div class="text-muted">@l.GioBatDau.ToString(@"hh\:mm") · <span class="@l.TrangThai.CssTrangThai()" style="font-size:.68rem;padding:.1rem .45rem">@l.TrangThai.TenHienThi()</span></div></div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

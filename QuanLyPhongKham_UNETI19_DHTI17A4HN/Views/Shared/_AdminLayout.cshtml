@@ -2,7 +2,10 @@
    Nội dung thực hiện: Layout trang quản trị (Admin / Nhân viên / Bác sĩ) - thanh menu ngang đồng bộ với trang công khai,
    menu xổ xuống theo nhóm chức năng, thanh tiêu đề trang.
    Họ và tên: Trần Hoài Nam - Mã sinh viên: 23103100240
-   Nội dung thực hiện: Ẩn/hiện menu theo vai trò lưu trong Session. *@
+   Nội dung thực hiện: Ẩn/hiện menu theo vai trò lưu trong Session.
+   Họ và tên: Đỗ Huy Tùng - Mã sinh viên: 23103100296
+   Nội dung thực hiện: Huy hiệu số lịch chờ xác nhận trên menu Tiếp nhận lịch khám. *@
+@inject QuanLyPhongKham_UNETI19_DHTI17A4HN.Data.PhongKhamDbContext Db
 @{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString();
     var action = ViewContext.RouteData.Values["action"]?.ToString();
@@ -11,6 +14,7 @@
     var vaiTro = Context.Session.LayVaiTro();
     var hoTen = Context.Session.LayHoTen();
     bool laQuanTri = vaiTro == VaiTro.Admin || vaiTro == VaiTro.NhanVien;
+    int soChoXacNhan = laQuanTri ? Db.LichKhams.Count(l => l.TrangThai == TrangThaiLichKham.ChoXacNhan) : 0;
     bool nhomLich = La("TiepNhan") || La("LichKham", "DatLich") || La("KetQuaKham");
     bool nhomQuanLy = La("BacSi") || La("BenhNhan") || La("DichVuYTe") || La("ChuyenKhoa") || La("TaiKhoan");
 }
@@ -47,10 +51,10 @@
                             <li class="nav-item"><a class="nav-link @Act(La("ThongKe", "Dashboard"))" asp-controller="ThongKe" asp-action="Dashboard">Dashboard</a></li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle @Act(nhomLich)" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Lịch khám
+                                    Lịch khám @if (soChoXacNhan > 0) {<span class="nav-count">@soChoXacNhan</span>}
                                 </a>
                                 <ul class="dropdown-menu nav-menu">
-                                    <li><a class="dropdown-item @Act(La("TiepNhan"))" asp-controller="TiepNhan" asp-action="Index"><i class="bi bi-calendar2-check"></i>Tiếp nhận lịch khám</a></li>
+                                    <li><a class="dropdown-item @Act(La("TiepNhan"))" asp-controller="TiepNhan" asp-action="Index"><i class="bi bi-calendar2-check"></i>Tiếp nhận lịch khám @if (soChoXacNhan > 0) {<span class="nav-count ms-auto">@soChoXacNhan</span>}</a></li>
                                     <li><a class="dropdown-item @Act(La("LichKham", "DatLich"))" asp-controller="LichKham" asp-action="DatLich"><i class="bi bi-calendar-plus"></i>Đặt lịch hộ bệnh nhân</a></li>
                                     <li><a class="dropdown-item @Act(La("KetQuaKham"))" asp-controller="KetQuaKham" asp-action="Index"><i class="bi bi-clipboard2-pulse"></i>Kết quả khám</a></li>
                                 </ul>
