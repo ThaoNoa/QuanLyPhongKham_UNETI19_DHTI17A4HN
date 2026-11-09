@@ -1,5 +1,6 @@
 @* Họ và tên: Lê Quang Trung - Mã sinh viên: 23103100270
-   Nội dung thực hiện: Form thêm/sửa bác sĩ - chọn chuyên khoa từ CSDL, ngày sinh type="date", upload ảnh, gán tài khoản. *@
+   Nội dung thực hiện: Form thêm/sửa bác sĩ - chọn chuyên khoa từ CSDL, ngày sinh type="date", upload ảnh, gán tài khoản;
+   hiển thị thông báo lỗi học vị. *@
 @model BacSiFormViewModel
 @{ bool laSua = Model.BacSi.MaBacSi > 0; }
 <form asp-action="@(laSua ? "Edit" : "Create")" method="post" enctype="multipart/form-data" novalidate>
@@ -67,6 +68,7 @@
                             <option value="@h" selected="@(Model.BacSi.HocVi == h)">@h.TenHienThi()</option>
                         }
                     </select>
+                    <span asp-validation-for="BacSi.HocVi"></span>
                 </div>
                 <div class="col-12">
                     <label asp-for="BacSi.ChuyenMon" class="form-label required"></label>

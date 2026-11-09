@@ -231,6 +231,10 @@ namespace QuanLyPhongKham_UNETI19_DHTI17A4HN.Controllers
             if (!await _context.ChuyenKhoas.AnyAsync(c => c.MaChuyenKhoa == b.MaChuyenKhoa))
                 ModelState.AddModelError("BacSi.MaChuyenKhoa", "Chuyên khoa không hợp lệ.");
 
+            // Học vị phải nằm trong danh sách (chặn trường hợp sửa form gửi giá trị lạ)
+            if (!Enum.IsDefined(b.HocVi))
+                ModelState.AddModelError("BacSi.HocVi", "Học vị không hợp lệ.");
+
             int tuoi = DateTime.Today.Year - b.NgaySinh.Year;
             if (b.NgaySinh > DateTime.Today || tuoi < 22 || tuoi > 80)
                 ModelState.AddModelError("BacSi.NgaySinh", "Tuổi bác sĩ phải từ 22 đến 80.");
